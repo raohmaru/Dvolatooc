@@ -1,0 +1,40 @@
+Name	Set	ImageFile	Type	CornerValue	Text	FlavorText	Creator
+The Cave of Caerbannog	monty_python_and_the_holy_grail	thing_location	Thing - Location				Ed
+A French Castle	monty_python_and_the_holy_grail	thing_location	Thing - Location				Ed
+A Convent	monty_python_and_the_holy_grail	thing_location	Thing - Location				Ed
+The Bridge of Death	monty_python_and_the_holy_grail	thing_location	Thing - Location				Ed
+A Castle Built on a Swamp	monty_python_and_the_holy_grail	thing_location	Thing - Location				Ed
+The Dark Forest of Ewing	monty_python_and_the_holy_grail	thing_location	Thing - Location				Ed
+An Old Forest Bridge	monty_python_and_the_holy_grail	thing_location	Thing - Location				Ed
+The Forest Road	monty_python_and_the_holy_grail	thing_location	Thing - Location				Ed
+Sir Bedevere	monty_python_and_the_holy_grail	thing_knight	Thing - Knight				Ed
+Sir Robin	monty_python_and_the_holy_grail	thing_knight	Thing - Knight		The not-quite-as-brave-as-Sir-Lancelot. Action: Brave Sir Robin may choose to be recalled instead of staying captured.  But forfeits the right to draw a card when the location is discarded.		Ed
+King Arthur	monty_python_and_the_holy_grail	thing_knight	Thing - Knight		Action: may rescue a knight from 'The Black Knight' at 'The old Forest Bridge'		Ed
+Sir Lancelot	monty_python_and_the_holy_grail	thing_knight	Thing - Knight		Action: may rescue a knight from 'A Spanking!' at 'The Convent'		Ed
+Sir Galahad	monty_python_and_the_holy_grail	thing_knight	Thing - Knight				Ed
+Tim the Enchanter	monty_python_and_the_holy_grail	action	Action		Action: Pick any card from the discard pile, and put it in your hand.		Ed
+An Argument, with Tea but not with Biscuits	monty_python_and_the_holy_grail	action	Action		Action: Rescue a knight from 'The Three Headed Knight' at 'The Dark forest of Ewing'.		Ed
+The Black Knight	monty_python_and_the_holy_grail	action	Action		Action: Capture a knight at 'The Old Forest Bridge'.		Ed
+Monks	monty_python_and_the_holy_grail	action	Action		Action: Rescue a knight from 'The Rabbit with Big Pointy Teeth' at 'The Cave of Caerbannog'.		Ed
+The Rabbit with Big Pointy Teeth	monty_python_and_the_holy_grail	action	Action		Action: Capture a knight at 'The Cave of Caerbannog'.		Ed
+The Flight Speed of a Swallow	monty_python_and_the_holy_grail	action	Action		Action: Rescue a knight from 'Three Questions' at 'The Bridge of Death'.		Ed
+Three Questions	monty_python_and_the_holy_grail	action	Action		Action: Capture a knight at 'The Bridge of Death'.		Ed
+The Knights That Say Ni!	monty_python_and_the_holy_grail	action	Action		Action: Capture a knight at 'The Forest Road'.		Ed
+A Shrubbery	monty_python_and_the_holy_grail	action	Action		Action: Rescue a knight from 'The Knights of Ni!' at 'The Forest Road'.		Ed
+A French Knight	monty_python_and_the_holy_grail	action	Action		Action: Capture a knight at 'A French castle'.		Ed
+Build a Cow Catapult	monty_python_and_the_holy_grail	action	Action		Action: Rescue a knight from 'A French Knight' at 'A French castle'.		Ed
+A Spanking!	monty_python_and_the_holy_grail	action	Action		Action: Nuns capture a knight at 'A Convent'.		Ed
+Prince Herbert and the Wedding Party	monty_python_and_the_holy_grail	action	Action		Action: Capture a knight at 'A Castle Built on a Swamp'.		Ed
+Concorde the Squire	monty_python_and_the_holy_grail	action	Action		Action: Rescue a knight from 'Prince Herbert and the Wedding Party' at 'A Castle Built on a Swamp'.		Ed
+A Witch!	monty_python_and_the_holy_grail	action	Action		Action: Put any knight from the discard pile into play.		Ed
+Sir Not Appearing In This Picture	monty_python_and_the_holy_grail	action	Action		Action: Your chosen player must discard a knight in his hand, otherwise one of his knights in play (don't draw a card if it's a knight at a location, locations remain in play)		Ed
+Plague!	monty_python_and_the_holy_grail	action	Action		Action: Put any knight in play into the discard pile (don't draw a card if it's a knight at a location, locations remain in play)		Ed
+The Voice of God	monty_python_and_the_holy_grail	action	Action		Action: Reshuffle this card, the draw pile and the discard pile, into a new draw pile.		Ed
+The Green Knight	monty_python_and_the_holy_grail	action	Action		Action: Steal another player's knight that is in play but not captured.  The knight remains in play as your knight.		Ed
+I'm Not Dead!	monty_python_and_the_holy_grail	action	Action		Action: Put any knight from the discard pile into play on your side.		Ed
+I'm Not Dead!	monty_python_and_the_holy_grail	action	Action		Action: Put any knight from the discard pile into play on your side.		Ed
+The Holy Hand Grenade of Antioch	monty_python_and_the_holy_grail	action	Action		Action: Rescue or steal any knight at a location. Discard the location and draw a card.		Ed and Ady
+Minstrels	monty_python_and_the_holy_grail	action	Action		Action: Rescue or steal any knight at a location. Discard the location and draw a card.		Ed and Ady
+Coconuts	monty_python_and_the_holy_grail	action	Action		Action: Rescue or steal any knight at a location. Discard the location and draw a card.		Ed and Ady
+THE HOLY GRAIL	monty_python_and_the_holy_grail	action	Action		Action: You win! Unless you drew this card during the draw phase in which case reshuffle this card, the draw pile and the discard pile, into a new draw pile.		Ed and Ady
+Help! Help! I'm being Repressed!	monty_python_and_the_holy_grail	action	Action		Action: Put any location from the discard pile into your hand.		Ed

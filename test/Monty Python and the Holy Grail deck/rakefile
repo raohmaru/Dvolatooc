@@ -1,0 +1,5 @@
+task :default => [:test]
+
+task :test do
+  ruby "../../lib/dvolatooc.rb lackey.txt --setname 'Monty Python and the Holy Grail deck'"
+end
