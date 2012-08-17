@@ -1,0 +1,13 @@
+require 'rake/testtask'
+
+task :default => [:test]
+
+task :test do
+  ruby "../lib/dvolatooc.rb decks/monty_python_and_the_holy_grail.txt -n 'Monty Python and the Holy Grail deck' -v '0.9.9'"
+  
+  Rake::TestTask.new do |t|
+    t.test_files = FileList['test_*.rb']
+    t.verbose = true
+    t.warning = true
+  end
+end

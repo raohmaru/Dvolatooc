@@ -25,10 +25,11 @@
 require 'rubygems'
 require 'uuidtools'
 require 'builder/xmlmarkup'
-require 'active_support/ordered_hash'
+# Ruby < 1.9 doesn't support ordered hashes
+require 'active_support/ordered_hash' if RUBY_VERSION < "1.9"
 
 module Dvolatooc
-  VERSION = "0.5.0"
+  VERSION = "0.5.1"
   
   class << self
     
@@ -61,8 +62,8 @@ Usage:
 
 Example:
     dvolatooc lackey.txt
-    dvolatooc lackey.txt --setname "Programming deck" --setcode PRG
-    dvolatooc svl.txt --setnameSupervillains! -setversion 1.0.5
+    dvolatooc lackey.txt -n "Programming deck" -c PRG
+    dvolatooc svl.txt -n Supervillains! -v 1.0.5
 
 Arguments:
 
@@ -75,24 +76,22 @@ Options:
 
 Set options:
 
---gameid <UUID>        Overrides the id of the target Dvorak OCTGN game. It must be a canonical UUID string
---gameversion <#.#.#>  Overrides the version of the target Dvorak OCTGN game
---setname              Name of the set
---setcode              An unique code for the set
---setversion <#.#.#>   Sets a version for this set. Defaults to #{@game_version}
+-gi <UUID>    Overrides the id of the target Dvorak OCTGN game.
+              It must be a canonical UUID string
+-gv <#.#.#>   Overrides the version of the target Dvorak OCTGN game
+-n            Name of the set
+-v <#.#.#>    Define a version for this set. Defaults to #{@game_version}
 EOF
       unless argv.empty?
         while arg = argv.shift
           case arg
-            when /\A--gameid\z/
+            when /\A--gameid\z/, /\A-gi\z/
               @game_id = argv.shift
-            when /\A--gameversion\z/
+            when /\A--gameversion\z/, /\A-gv\z/
               @game_version = argv.shift
-            when /\A--setname\z/
+            when /\A--setname\z/, /\A-n\z/
               @set_name = argv.shift
-            when /\A--setcode\z/
-              @set_code = argv.shift
-            when /\A--setversion\z/
+            when /\A--setversion\z/, /\A-v\z/
               @set_version = argv.shift
             when /\A--version\z/
               printAndExit "Dvolatooc #{VERSION}"
@@ -117,30 +116,37 @@ EOF
       @file = File.new(@filename)
       # Gets first card on the set (it is at the 2nd line)
       2.times{@file.gets}
-      row = $_.rstrip.split '	'
+      row = $_.split "\t"
       @file.rewind
       
       if row.length < 8
         printAndExit "Input file is not a valid Lackey deck set"
       end
       
-      # Gets the set name from the input set definition
+      # Gets the real set name from the input set definition
+      @set_name_real = row[1]      
+      
       if @set_name.nil? || @set_name.empty?
-        @set_name = row[1]
+        @set_name = @set_name_real
       end
       
       # Gets the set code from the set name, as an acronym
-      if @set_code.nil? || @set_code.empty?
-        @set_code = ''
-        words = @set_name.upcase.split(/_| /)
-        words.map { |w|
-          next if ["THE","AND","AN","A","OF","TO","IS","DECK"].include? w
-          @set_code += w[0,1]
-          break if @set_code.length >= 4
-        }
-        # Code too short
+      @set_code = ''
+      words = @set_name_real.upcase.split(/_| /)
+      words.map { |w|
+        next if ["THE","AND","AN","A","OF","TO","IS","DECK"].include? w
+        @set_code += w[0,1]
+        break if @set_code.length >= 4
+      }
+      
+      # Code too short
+      if words[-1].length > 1
+        i = 1
         while @set_code.length < 3
-          @set_code += words[-1][@set_code.length,1]
+          letter = words[-1][i,1]
+          break if letter.nil?
+          @set_code += letter
+          i += 1
         end
       end
     end
@@ -148,9 +154,15 @@ EOF
     def createFiles
       @xml_set = ''  # Objects to save the xml string
       @xml_res = ''
-      cards = ActiveSupport::OrderedHash.new  # key => card name, val => UUID object
       i = 1
-
+      
+      # key => card name, val => UUID object
+      if RUBY_VERSION < "1.9"
+        cards = ActiveSupport::OrderedHash.new
+      else
+        cards = {}
+      end
+      
       # Builds up the XML set definition
       # <https://github.com/kellyelton/OCTGN/wiki/Xml-Set-Description>
       xml = Builder::XmlMarkup.new( :target => @xml_set, :indent => 4 )
@@ -159,7 +171,7 @@ EOF
       xml.set(
         # <set> attributes
         :name        => @set_name,
-        :id          => UUIDTools::UUID.parse_raw(@set_name),
+        :id          => UUIDTools::UUID.parse_raw(@set_name_real),
         :gameId      => @game_id,
         :gameVersion => @game_version,
         :version     => @set_version
@@ -169,9 +181,9 @@ EOF
           # Read each line of the txt file input
           @file.each_with_index() do |line, index|
             next if index == 0  # Skip 1st line since are columns names
-            card = line.rstrip.split '	'  # Split by tab char
+            card = line.split "\t"  # Split by tab char
             next unless cards[card[0]].nil?  # Skip duplicated cards
-            cards[card[0]] = UUIDTools::UUID.parse_raw( @set_name+card[0] )
+            cards[card[0]] = UUIDTools::UUID.parse_raw( @set_name_real+card[0] )
             
             xml.card(
               # <card> attributes
@@ -189,7 +201,7 @@ EOF
               xml.property :name => 'Flavor',   :value => card[6]
               xml.property :name => 'Artist',   :value => ''
               xml.property :name => 'Number',   :value => i
-              xml.property :name => 'Creator',  :value => card[7]
+              xml.property :name => 'Creator',  :value => card[7].nil? ? '' : card[7].rstrip
             }
             i += 1
           end  # file.each()

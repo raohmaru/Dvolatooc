@@ -1,1 +1,0 @@
-ocra --verbose lib/dvolatooc.rb --output bin/dvolatooc.exe >> build.log

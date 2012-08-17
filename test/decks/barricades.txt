@@ -1,0 +1,44 @@
+Name	Set	ImageFile	Type	CornerValue	Text	FlavorText	Creator
+Table	barricades	thing	Thing		All things above it are immune to "Blowing".		
+Blowing	barricades	action	Action		If target player has more than 8 things, destroy 6.		
+Rocket launcher	barricades	action_weapon	Action - Weapon		Destroy half of target players things (round up).		
+Kalashnikov	barricades	action_weapon	Action - Weapon			Standard weapon - no further effect.	
+Kalashnikov	barricades	action_weapon	Action - Weapon			Standard weapon - no further effect.	
+Anvil	barricades	thing	Thing		Can not be destroyed by "Dynamite".		
+Dynamite	barricades	action	Action		Randomly pick a thing from target players things. Destroy this thing.		
+Dynamite	barricades	action	Action		Randomly pick a thing from target players things. Destroy this thing.		
+Dynamite	barricades	action	Action		Randomly pick a thing from target players things. Destroy this thing.		
+Elephant	barricades	thing	Thing		When it gets destroyed, everything becomes covered in goo. Nobody may play an action in their next turn.		
+Fridge	barricades	thing	Thing		Whoever controls the fridge, controls all the food in the room.		
+Chuck Norris	barricades	thing	Thing		Chuck Norris cannot be destroyed. Instead, control over him switches to the player who would have destroyed him.		
+Safe	barricades	thing	Thing		When "Safe" is destroyed by "Dynamite", then the player gets "A big pile of money". The card is taken from the deck, the discard pile, or any players hand.		
+A big pile of money	barricades	thing	Thing		This card can not be played. It is worthless, unless given to a player by the destruction of "Safe" through "Dynamite". May be discarded at the end of each turn to make room in your hand. When on the table, this card must be destroyed 3 times in order to go to the discard pile.		
+Mortar	barricades	action_weapon	Action - Weapon		Target player discards entire hand.		
+Frankenstein	barricades	action	Action		Retrieve a card from the discard pile and add it to your hand.		
+Throw brick	barricades	action_weapon	Action - Weapon		Destroy target player's top thing.		
+Mouse trap	barricades	thing	Thing		When destroyed, the player who destroyed it discards his entire hand.		
+Sucide bomber	barricades	action_weapon	Action - Weapon		Destroy your top thing to use. Destroy target players top two things.		
+Night of the rising dead	barricades	action	Action		May only be played, if player owns "Dark Talisman". Pick whatever card(s) you want from the discard pile and play them immediately. Exception: "Big pile of money"		
+Dark talisman	barricades	thing	Thing		When destroyed, destroy a thing. You can also destroy one of your things to add this card back to your hand.		
+Air bombing	barricades	action_weapon	Action - Weapon		Target players top 3 things get destroyed.		
+Handcuffs	barricades	action	Action		Target player may not play actions next turn.		
+Zombie corpse	barricades	thing	Thing		Can not be destroyed as long as "Dark Talisman" is on the table. If destroyed, put this card on thop of the deck.		
+Magical card switcher	barricades	thing	Thing		Action: Discard a card from your hand. Draw a card.		
+Shape shifter	barricades	thing	Thing		During your turn, you may destroy this card to take control of target players top thing.		
+MS Windows	barricades	thing	Thing		When destroyed, it crashes. (All things above it are destryed)		
+Huge concrete block	barricades	thing	Thing			A huge concrete block.	
+Huge concrete block	barricades	thing	Thing			A huge concrete block.	
+Huge concrete block	barricades	thing	Thing			A huge concrete block.	
+Huge concrete block	barricades	thing	Thing			A huge concrete block.	
+Huge concrete block	barricades	thing	Thing			A huge concrete block.	
+Autoturret	barricades	thing_weapon	Thing + Weapon		Action: You may use an imaginative Kalashnikov card additionally to your other action card.		
+Unreal Tournament	barricades	thing	Thing		Action: You may sacrifice one of your things and "Unreal Tournament" to use two actions in one round.		
+Angry German kid	barricades	thing	Thing		Played under the control of target player. All things above it get destroyed immediately. If "Unreal Tournament" is in play, this card has no effect.		
+Throw brick	barricades	action_weapon	Action - Weapon		Destroy target players top thing.		
+Throw brick	barricades	action_weapon	Action - Weapon		Destroy target players top thing.		
+Cheese	barricades	thing	Thing		You can either play this card as one of your things with no effect or play it on top of another players "Mouse Trap", if it is on top. Then, both cards get destroyed and the owner of the mouse has to discard his entire hand.		
+Suitcase	barricades	thing	Thing		You may hold seven cards instead of five.		
+Bunker	barricades	thing	Thing		If it is on top, you are immune to "Rocket launcher" and "Air bombing"		
+Crane	barricades	action	Action		You may bring one of your things to the top of the stack.		
+Earthquake	barricades	action	Action		Destroy all "Huge concrete Block"s.		
+Pickpocket	barricades	action	Action		Randomly pick a card from target players hand and add it to your own.	

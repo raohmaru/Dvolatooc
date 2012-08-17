@@ -1,0 +1,25 @@
+require 'rake/clean'
+
+CLEAN.include ['bin/*.exy', 'bin/*.log']
+CLOBBER.include 'bin/*.exe'
+
+input = 'dvolatooc'
+
+directory 'bin'
+
+file "bin/#{input}.exy" => ['bin', "lib/#{input}.rb"] do
+  sh "mkexy -KU lib/#{input}.rb"
+  mv "lib/#{input}.exy", "bin/#{input}.exy"
+end
+
+desc "Compiles to Windows EXE using Exerb"
+task :build => ["bin/#{input}.exy"] do
+  rm 'bin/build.log' if File.exist?('bin/build.log')
+  sh "exerb --verbose bin/#{input}.exy -o #{input}.exe >> bin/build.log"
+end
+
+desc "Compiles to Windows EXE using Ocra"
+task :build_ocra => ['bin'] do
+  rm 'bin/build_ocra.log' if File.exist?('bin/build.log')
+  sh "ocra --verbose lib/#{input}.rb --output bin/#{input}.exe >> bin/build_ocra.log"
+end
