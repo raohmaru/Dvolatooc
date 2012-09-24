@@ -1,13 +1,17 @@
 require 'rake/testtask'
 
-task :default => [:test]
-
+desc "Basic Unit Testing"
 task :test do
-  ruby "../lib/dvolatooc.rb decks/monty_python_and_the_holy_grail.txt -n 'Monty Python and the Holy Grail deck' -v '0.9.9'"
+  # ruby "../lib/dvolatooc.rb decks/monty_python_and_the_holy_grail.txt -n 'Monty Python and the Holy Grail deck' -v '0.9.9'"
   
   Rake::TestTask.new do |t|
     t.test_files = FileList['test_*.rb']
     t.verbose = true
     t.warning = true
   end
+end
+
+desc "Builds up the 'Síndrome de Diógenes' set"
+task :sindrome do
+  ruby "../lib/dvolatooc.rb decks/s_ndrome_de_di_genes.txt -n 'Síndrome de Diógenes'"
 end

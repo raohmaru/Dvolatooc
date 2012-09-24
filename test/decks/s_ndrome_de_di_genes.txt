@@ -1,0 +1,31 @@
+Name	Set	ImageFile	Type	CornerValue	Text	FlavorText	Creator
+Pudriéndote en tu propia Mierda	s_ndrome_de_di_genes	acci_n	Acción		Si controlas 3 or más Riesgos para la Salud, ganas la partida.		CashCrazed
+Acumulador Profesional	s_ndrome_de_di_genes	acci_n	Acción		Si controlas 8 o más cartas de Basura, ganas la partida.		CashCrazed
+Cleptómano	s_ndrome_de_di_genes	acci_n	Acción		Coge una carta de Basura de cualquier jugador y ponla bajo tu control.		CashCrazed
+Rebuscando en la Basura	s_ndrome_de_di_genes	acci_n	Acción		Busca en el mazo de descarte una carta de Basura y ponla en tu mano.		CashCrazed
+Camioneta	s_ndrome_de_di_genes	acci_n	Acción		Durante este turno, puedes jugar tantas Things como quieras.		CashCrazed
+Venta de Trastos	s_ndrome_de_di_genes	acci_n	Acción		Roba cartas hasta completar el máximo de tu mano.		CashCrazed
+Vertedero Clausurado	s_ndrome_de_di_genes	acci_n	Acción		Destruye el Riesgo para la Salud elegido.		CashCrazed
+Martillo	s_ndrome_de_di_genes	acci_n	Acción		Destruye la Basura elegida.		CashCrazed
+Impuesto de Patrimonio	s_ndrome_de_di_genes	acci_n	Acción		El jugador o jugadores con más basura deben descartar dos cartas al azar.		CashCrazed
+Periódicos Viejos	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Eh, aquí dice que han matado a Kennedy!	CashCrazed
+Ropas de Bebé	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Podrías tener un niño algún día!	CashCrazed
+Sofá Desvencijado	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Sólo le sobresalen tres muelles!	CashCrazed
+Colección de Cintas	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Vuelve el disco, nena!	CashCrazed
+Piano Roto	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Todavía funciona la mitad del teclado!	CashCrazed
+Abeto Seco	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Me ahorraré comprar uno dentro de seis meses!	CashCrazed
+Miniaturas Oficiales	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Algún día serán objetos de coleccionista!	CashCrazed
+Montón de Latas de Cerveza	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Si consigo suficientes, me darán un dólar por ellas!	CashCrazed
+Televisor Quemado.	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Te juro que mañana lo arreglo!	CashCrazed
+Ropa de los 80	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Se volverá a poner de moda, sólo es cuestión de tiempo!	CashCrazed
+Sobras de Comida	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Mételas al microondas y estará tan rica como el primer día!	CashCrazed
+Platos Sucios	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Vale, vale, ya los lavaré el viernes!	CashCrazed
+Equipación de Fútbol	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡La usé en el instituto, hace 20 años!	CashCrazed
+Commodore 64	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Tiene 64K de memoria!	CashCrazed
+Colección de Revistas	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Las querré releer algún día!	CashCrazed
+Cucarachas	s_ndrome_de_di_genes	objeto_riesgo_para_la_salud	Objeto - Riesgo para la Salud	4		No hacen daño a nadie...	CashCrazed
+Cultivo de Moho	s_ndrome_de_di_genes	objeto_riesgo_para_la_salud	Objeto - Riesgo para la Salud	4		Es como un experimento científico en mi propio salón.	CashCrazed
+Basura en descomposición	s_ndrome_de_di_genes	objeto_riesgo_para_la_salud	Objeto - Riesgo para la Salud	3		Te prometo que mañana la tiro.	CashCrazed
+Roedores	s_ndrome_de_di_genes	objeto_riesgo_para_la_salud	Objeto - Riesgo para la Salud	3		Limpian el suelo cuando se me caen miguitas.	CashCrazed
+Ácaros	s_ndrome_de_di_genes	objeto_riesgo_para_la_salud	Objeto - Riesgo para la Salud	2		Si no puedes verlos, ¿por qué preocuparse?	CashCrazed
+Animales vagabundos	s_ndrome_de_di_genes	objeto_riesgo_para_la_salud	Objeto - Riesgo para la Salud	1	Este Objeto siempre está controlado por el jugador con más Basura. Si dos o más jugadores empatan en cantidad de basura, permanece con su propietario actual.		CashCrazed

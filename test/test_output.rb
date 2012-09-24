@@ -27,6 +27,7 @@ class TestOutput < Test::Unit::TestCase
     assert File.exists?( "#{@expected_folder}/#{@expected_code}.xml" )
     assert File.exists?( "#{@expected_folder}/_rels/.rels" )
     assert File.exists?( "#{@expected_folder}/_rels/#{@expected_code}.xml.rels" )
+    assert_equal 38, Dir.glob("#{@expected_folder}/cards/*").length
   end
  
   def test_setname    

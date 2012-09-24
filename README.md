@@ -9,6 +9,6 @@ Released under the MIT License.
 
 TODO
 ----
-* Render cards to image files?
+* <del>Render cards to image files?</del>
 * Zip output folder and rename to .O8S
 * Error check

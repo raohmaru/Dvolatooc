@@ -25,24 +25,32 @@
 require 'rubygems'
 require 'uuidtools'
 require 'builder/xmlmarkup'
+require 'RMagick'
 # Ruby < 1.9 doesn't support ordered hashes
 require 'active_support/ordered_hash' if RUBY_VERSION < "1.9"
 
 module Dvolatooc
-  VERSION = "0.5.1"
+  VERSION = "0.6.0"
   
   class << self
     
     def init(argv)
       @game_id      = '51ac5322-f399-4116-a38e-12573aba58ae'
-      @game_version = '0.9.0'
+      @game_version = '0.9.1'
       @set_version  = '1.0.0'
-      @rarity       = 'Common'
+      
+      @draw = Magick::Draw.new
+      @style_dir = Dir.getwd + '/style/'
+      @templates = Magick::ImageList.new(@style_dir+'thing.png', @style_dir+'action.png')
+      @pics_dir = Dir.getwd + '/pics/'
+      @pics_dir = nil unless FileTest.directory?(@pics_dir)
+      @rules_cols = 0
+      @flavor_cols = 0
       
       parseArgs(argv)
       checkArgs
-      createFiles
       mkSetFolders
+      createFiles
       writeFiles
 
       puts "Set '#{@set_name}' created\n"
@@ -67,20 +75,20 @@ Example:
 
 Arguments:
 
-input_file    Lackey set definiton of an Dvorak deck
+    input_file    Lackey set definiton of an Dvorak deck
 
 Options:
 
---help        Display this information.
---version     Display version number and exit.
+    --help        Display this information.
+    --version     Display version number and exit.
 
-Set options:
+    Set options:
 
--gi <UUID>    Overrides the id of the target Dvorak OCTGN game.
-              It must be a canonical UUID string
--gv <#.#.#>   Overrides the version of the target Dvorak OCTGN game
--n            Name of the set
--v <#.#.#>    Define a version for this set. Defaults to #{@game_version}
+    -gi <UUID>    Overrides the id of the target Dvorak OCTGN game.
+                  It must be a canonical UUID string
+    -gv <#.#.#>   Overrides the version of the target Dvorak OCTGN game
+    -n            Name of the set
+    -v <#.#.#>    Define a version for this set. Defaults to #{@game_version}
 EOF
       unless argv.empty?
         while arg = argv.shift
@@ -117,6 +125,7 @@ EOF
       # Gets first card on the set (it is at the 2nd line)
       2.times{@file.gets}
       row = $_.split "\t"
+      @num_cards = @file.readlines.length+1
       @file.rewind
       
       if row.length < 8
@@ -179,30 +188,30 @@ EOF
         # Add <cards> child node
         xml.cards {
           # Read each line of the txt file input
-          @file.each_with_index() do |line, index|
+          @file.each_with_index do |line, index|
             next if index == 0  # Skip 1st line since are columns names
-            card = line.split "\t"  # Split by tab char
-            next unless cards[card[0]].nil?  # Skip duplicated cards
-            cards[card[0]] = UUIDTools::UUID.parse_raw( @set_name_real+card[0] )
+            card = Card.new(line, i)
+            next unless cards[card.name].nil?  # Skip duplicated cards
+            cards[card.name] = UUIDTools::UUID.parse_raw( @set_name_real+card.name )
             
             xml.card(
               # <card> attributes
-              :name => card[0],
-              :id   => cards[card[0]]
+              :name => card.name,
+              :id   => cards[card.name]
             ) {
-              # Lackey columns:
-              # 0:Name  1:Set  2:ImageFile  3:Type  4:CornerValue  5:Text  6:FlavorText  7:Creator
-              type = card[3].split /\s\-\s/
-              xml.property :name => 'Type',     :value => type[0]
-              xml.property :name => 'Subtype',  :value => type.length > 1 ? type[1..-1].join(' - ') : ''
-              xml.property :name => 'Rarity',   :value => @rarity
-              xml.property :name => 'Value',    :value => card[4]
-              xml.property :name => 'Rules',    :value => card[5]
-              xml.property :name => 'Flavor',   :value => card[6]
-              xml.property :name => 'Artist',   :value => ''
-              xml.property :name => 'Number',   :value => i
-              xml.property :name => 'Creator',  :value => card[7].nil? ? '' : card[7].rstrip
+              xml.property :name => 'Type',     :value => card.type
+              xml.property :name => 'Subtype',  :value => card.subtype
+              xml.property :name => 'Rarity',   :value => card.rarity
+              xml.property :name => 'Value',    :value => card.value
+              xml.property :name => 'Rules',    :value => card.rules
+              xml.property :name => 'Flavor',   :value => card.flavor
+              xml.property :name => 'Artist',   :value => card.artist
+              xml.property :name => 'Number',   :value => card.number
+              xml.property :name => 'Creator',  :value => card.creator
             }
+            
+            createCardImage(card)
+            
             i += 1
           end  # file.each()
         }  # End of xml.cards
@@ -231,6 +240,107 @@ EOF
       }  # xml.Relationships
       
       @cards_total = i-1
+    end
+    
+    def createCardImage(card)
+      color = card.thing? ? '#4a4de5' : '#e65252'
+      image = @templates[card.thing? ? 0 : 1].copy
+      
+      @draw.font = @style_dir+'font/EurostileT-Black.ttf'
+      
+      # Title
+      #              draw, width, height, x, y, text
+      @draw.pointsize = size = 30
+      metrics = @draw.get_type_metrics(image, card.name)
+      if metrics.width > 266
+        @draw.pointsize = size = 30*266 / metrics.width
+      end
+      image.annotate(@draw, 266, 35, 30, 30+(30-size), card.name) {
+        self.fill = 'white'
+        self.gravity = Magick::NorthWestGravity
+      }
+      # Value
+      unless card.value.empty?
+        image.annotate(@draw, 38, 32, 304, 28, card.value) {
+          self.fill = color
+          self.pointsize = 30
+          self.gravity = Magick::NorthGravity
+        }
+      end
+      # Type
+      image.annotate(@draw, 345, 22, 0, 74, card.supertype) {
+        self.fill = 'white'
+        self.pointsize = 18
+        self.gravity = Magick::NorthEastGravity
+      }
+      # Rules
+      unless card.rules.empty?
+        @draw.font = @style_dir+'font/Ubuntu-Medium.ttf'
+        @draw.pointsize = 17
+        if @rules_cols == 0
+          metrics = @draw.get_type_metrics(image, 'n')
+          @rules_cols = (315 / metrics.width).floor + 4
+        end
+        rules = card.text_multiline(card.rules, @rules_cols)
+        image.annotate(@draw, 315, 130, 30, 330, rules) {
+          self.fill = 'black'
+          self.gravity = Magick::NorthWestGravity
+        }
+      end
+      # Flavor text
+      unless card.flavor.empty?
+        y = 330+10
+        unless card.rules.empty?
+          metrics = @draw.get_multiline_type_metrics(image, rules)
+          y += metrics.height
+        end
+        @draw.font = @style_dir+'font/Ubuntu-Italic.ttf'
+        @draw.pointsize = 16
+        if @flavor_cols == 0
+          metrics = @draw.get_type_metrics(image, 'n')
+          @flavor_cols = (315 / metrics.width).floor + 4
+        end
+        image.annotate(@draw, 315, 130, 30, y, card.text_multiline(card.flavor, @flavor_cols)) {
+          self.fill = 'black'
+          self.gravity = Magick::NorthWestGravity
+        }
+      end
+      # Creator
+      @draw.font = @style_dir+'font/Ubuntu-Medium.ttf'
+      creator = "Card by #{card.creator}"
+      creator += ". Art by #{card.artist}" unless card.artist.empty?
+      image.annotate(@draw, 250, 14, 15, 500, creator) {
+        self.fill = 'black'
+        self.pointsize = 12
+        self.gravity = Magick::NorthWestGravity
+      } 
+      # Number
+      image.annotate(@draw, 360, 14, 0, 500, @set_code+"-#{card.number}/#{@num_cards}") {
+        self.gravity = Magick::NorthEastGravity
+      }
+      
+      # Picture
+      if @pics_dir
+        file = nil
+        ['.jpg','.jpeg','.gif','.png'].each{ |ext|
+          file1 = @pics_dir+card.number.to_s+ext
+          file2 = @pics_dir+card.name+ext
+          if FileTest.file?(file1)
+            file = file1
+            break
+          elsif FileTest.file?(file2)
+            file = file2
+          end
+        }
+        
+        unless file.nil?
+          pict = Magick::ImageList.new(file)
+          pict.resize_to_fill!(315, 218)
+          image.composite!(pict, 30, 104, Magick::OverCompositeOp)
+        end
+      end
+      
+      image.write('cards/'+sprintf("%03d", card.number)+'.jpg')
     end
     
     def mkSetFolders
@@ -283,6 +393,55 @@ EOF
     end
     
   end  # class << self
+end
+
+class Card
+  
+  attr_reader :name, :supertype, :type, :subtype, :rarity, :value, :rules, :flavor, :artist, :number, :creator
+  
+	def initialize(raw, number)
+    # Lackey columns:
+    # 0:Name  1:Set  2:ImageFile  3:Type  4:CornerValue  5:Text  6:FlavorText  7:Creator
+    raw = raw.split "\t"  # Split by tab char
+    type = raw[3].split /\s\-\s/
+    
+    @name = raw[0].strip
+    @type = type[0].strip
+    @subtype = type.length > 1 ? type[1..-1].join(' - ') : ''
+    @supertype = @type + (@subtype.empty? ? '' : ' - '+@subtype)
+    @rarity = 'Common'
+    @value = raw[4].strip
+    @rules = raw[5].strip
+    @flavor = raw[6].strip
+    @artist = ''
+    @number = number
+    @creator = raw[7].nil? ? '' : raw[7].rstrip
+	end
+  
+  def thing?
+    return /thing|objeto/i.match(@type) != nil
+  end
+  
+  def action?
+    return /action|acción/i.match(@type) != nil
+  end
+  
+  def text_multiline(text, cols)
+    m = []
+    line = ''
+    text.split(' ').each do |word|
+      if (line + word).length < cols
+        line += word + ' '
+      else
+        m.push line
+        line = word + ' '
+      end
+    end
+    m.push line
+    
+    return m.join '\n'
+  end
+  
 end
 
 if File.basename(__FILE__) == File.basename($0)
