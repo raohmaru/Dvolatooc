@@ -4,6 +4,10 @@
 Changelog
 ---------
 
+### v0.6.5
+* Customizable style definition for rendered cards.
+* Formatted code following the Ruby Style Guide.
+
 ### v0.6.0
 * Rendering card images using RMagick.
 * Minor code improvements.

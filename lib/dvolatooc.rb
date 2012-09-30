@@ -1,5 +1,5 @@
 #--
-# Lackey set to OCTGN set package
+# Lackey set to OCTGN set package converter
 # Copyright (c) 2012 Raohmaru
 
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -22,43 +22,44 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
+require File.expand_path(File.dirname(__FILE__) + '/card')
+require File.expand_path(File.dirname(__FILE__) + '/style')
 require 'rubygems'
 require 'uuidtools'
 require 'builder/xmlmarkup'
-require 'RMagick'
 # Ruby < 1.9 doesn't support ordered hashes
 require 'active_support/ordered_hash' if RUBY_VERSION < "1.9"
 
 module Dvolatooc
-  VERSION = "0.6.0"
-  
-  class << self
-    
-    def init(argv)
-      @game_id      = '51ac5322-f399-4116-a38e-12573aba58ae'
-      @game_version = '0.9.1'
-      @set_version  = '1.0.0'
-      
-      @draw = Magick::Draw.new
-      @style_dir = Dir.getwd + '/style/'
-      @templates = Magick::ImageList.new(@style_dir+'thing.png', @style_dir+'action.png')
-      @pics_dir = Dir.getwd + '/pics/'
-      @pics_dir = nil unless FileTest.directory?(@pics_dir)
-      @rules_cols = 0
-      @flavor_cols = 0
-      
-      parseArgs(argv)
-      checkArgs
-      mkSetFolders
-      createFiles
-      writeFiles
+  VERSION = "0.6.5"
 
-      puts "Set '#{@set_name}' created\n"
-      puts "Founded #{@cards_total} cards\n"
-      puts "Files stored at #{@set_dir}"
+  module DIR
+    BASE  = Dir.getwd
+    STYLE = BASE + '/style/'
+    PICS  = FileTest.directory?(BASE + '/pics/') ? BASE + '/pics/' : nil
+  end
+
+  class << self
+
+    def init(argv)
+      set = Struct.new(:code, :version, :name, :real_name, :game_id, :game_version, :num_cards)
+      @set = set.new
+      @set.game_id = '51ac5322-f399-4116-a38e-12573aba58ae'
+      @set.game_version = '0.9.1'
+      @set.version  = '1.0.0'
+      
+      parse_args(argv)
+      check_args
+      mk_set_folders
+      parse_set
+      write_files
+
+      puts "Set '#{@set.name}' created\n"
+      puts "Founded #{@set.num_cards} cards\n"
+      puts "Files stored at #@set_dir"
     end
     
-    def parseArgs(argv)
+    def parse_args(argv)
       usage = <<EOF
 
 = DVOLATOOC! =
@@ -88,82 +89,93 @@ Options:
                   It must be a canonical UUID string
     -gv <#.#.#>   Overrides the version of the target Dvorak OCTGN game
     -n            Name of the set
-    -v <#.#.#>    Define a version for this set. Defaults to #{@game_version}
+    -v <#.#.#>    Define a version for this set. Defaults to #{@set.game_version}
 EOF
       unless argv.empty?
         while arg = argv.shift
           case arg
             when /\A--gameid\z/, /\A-gi\z/
-              @game_id = argv.shift
+              @set.game_id = argv.shift
             when /\A--gameversion\z/, /\A-gv\z/
-              @game_version = argv.shift
+              @set.game_version = argv.shift
             when /\A--setname\z/, /\A-n\z/
-              @set_name = argv.shift
+              @set.name = argv.shift
             when /\A--setversion\z/, /\A-v\z/
-              @set_version = argv.shift
+              @set.version = argv.shift
             when /\A--version\z/
-              printAndExit "Dvolatooc #{VERSION}"
+              print_and_exit "Dvolatooc #{VERSION}"
             when /\A--help\z/, /\A--./
-              printAndExit usage
+              print_and_exit usage
             else
               @filename = arg if @filename.nil?
           end
         end
       else
-        printAndExit usage
+        print_and_exit usage
       end
     end
     
-    def checkArgs
+    def check_args
       if @filename.nil?
-        printAndExit "Input file required"
+        print_and_exit "Input file required"
       elsif !File.exist?(@filename)
-        printAndExit "File #{@filename} was not found"
+        print_and_exit "File #@filename was not found"
       end
       
       @file = File.new(@filename)
-      # Gets first card on the set (it is at the 2nd line)
+      # Gets first card on the set (cards starts at the 2nd line)
       2.times{@file.gets}
       row = $_.split "\t"
-      @num_cards = @file.readlines.length+1
+      @set.num_cards = @file.readlines.length+1
       @file.rewind
       
       if row.length < 8
-        printAndExit "Input file is not a valid Lackey deck set"
+        print_and_exit "Input file is not a valid Lackey deck set"
       end
       
       # Gets the real set name from the input set definition
-      @set_name_real = row[1]      
+      @set.real_name = row[1]      
       
-      if @set_name.nil? || @set_name.empty?
-        @set_name = @set_name_real
+      if @set.name.nil? || @set.name.empty?
+        @set.name = @set.real_name
       end
       
       # Gets the set code from the set name, as an acronym
-      @set_code = ''
-      words = @set_name_real.upcase.split(/_| /)
+      @set.code = ''
+      words = @set.real_name.upcase.split(/_| /)
+      skip_words = %w(THE AND AN A OF TO IS DECK EL LA LOS LAS DE Y)
       words.map { |w|
-        next if ["THE","AND","AN","A","OF","TO","IS","DECK"].include? w
-        @set_code += w[0,1]
-        break if @set_code.length >= 4
+        next if skip_words.include? w
+        @set.code += w[0,1]
+        break if @set.code.length >= 4
       }
       
       # Code too short
       if words[-1].length > 1
         i = 1
-        while @set_code.length < 3
+        while @set.code.length < 3
           letter = words[-1][i,1]
           break if letter.nil?
-          @set_code += letter
+          @set.code += letter
           i += 1
         end
       end
     end
     
-    def createFiles
+    def mk_set_folders
+      # Folder structure of the OCTGN set
+      @set_dir = @set.code+'-v'+@set.version
+      Dir.mkdir(@set_dir) unless FileTest.directory?(@set_dir)
+      Dir.chdir(@set_dir)
+      Dir.mkdir('_rels') unless FileTest.directory?('_rels')
+      Dir.mkdir('cards') unless FileTest.directory?('cards')
+    end
+    
+    def parse_set
       @xml_set = ''  # Objects to save the xml string
       @xml_res = ''
       i = 1
+      style = Style.new(DIR::STYLE+'style')
       
       # key => card name, val => UUID object
       if RUBY_VERSION < "1.9"
@@ -179,25 +191,25 @@ EOF
       # Add <set> child node
       xml.set(
         # <set> attributes
-        :name        => @set_name,
-        :id          => UUIDTools::UUID.parse_raw(@set_name_real),
-        :gameId      => @game_id,
-        :gameVersion => @game_version,
-        :version     => @set_version
+        :name        => @set.name,
+        :id          => UUIDTools::UUID.parse_raw(@set.real_name),
+        :gameId      => @set.game_id,
+        :gameVersion => @set.game_version,
+        :version     => @set.version
       ) {
         # Add <cards> child node
         xml.cards {
           # Read each line of the txt file input
           @file.each_with_index do |line, index|
             next if index == 0  # Skip 1st line since are columns names
-            card = Card.new(line, i)
+            card = Card.new(line, i, @set)
             next unless cards[card.name].nil?  # Skip duplicated cards
-            cards[card.name] = UUIDTools::UUID.parse_raw( @set_name_real+card.name )
+            cards[card.name] = card
             
             xml.card(
               # <card> attributes
               :name => card.name,
-              :id   => cards[card.name]
+              :id   => card.id
             ) {
               xml.property :name => 'Type',     :value => card.type
               xml.property :name => 'Subtype',  :value => card.subtype
@@ -209,8 +221,8 @@ EOF
               xml.property :name => 'Number',   :value => card.number
               xml.property :name => 'Creator',  :value => card.creator
             }
-            
-            createCardImage(card)
+
+            style.render(card, @set)
             
             i += 1
           end  # file.each()
@@ -227,134 +239,22 @@ EOF
         :xmlns      => 'http://schemas.openxmlformats.org/package/2006/relationships'
       ) {
         #<Relationship Target='/cards/001.jpg' Id='Ce3db6eec6b1a4c9b83cd456d7cb8e001' Type='http://schemas.octgn.org/picture' />
-        cards.each { |k,v|
+        cards.each { |k,card|
           # Add <Relationship> child node
           xml.Relationship(
             # <Relationship> attributes
             :Target => '/cards/' + sprintf("%03d", i) + '.jpg',
-            :Id     => 'C' + v.hexdigest,
+            :Id     => 'C' + card.id.hexdigest,
             :Type   => 'http://schemas.octgn.org/picture'
           )
           i += 1
         }  # cards.each
       }  # xml.Relationships
-      
-      @cards_total = i-1
     end
     
-    def createCardImage(card)
-      color = card.thing? ? '#4a4de5' : '#e65252'
-      image = @templates[card.thing? ? 0 : 1].copy
-      
-      @draw.font = @style_dir+'font/EurostileT-Black.ttf'
-      
-      # Title
-      #              draw, width, height, x, y, text
-      @draw.pointsize = size = 30
-      metrics = @draw.get_type_metrics(image, card.name)
-      if metrics.width > 266
-        @draw.pointsize = size = 30*266 / metrics.width
-      end
-      image.annotate(@draw, 266, 35, 30, 30+(30-size), card.name) {
-        self.fill = 'white'
-        self.gravity = Magick::NorthWestGravity
-      }
-      # Value
-      unless card.value.empty?
-        image.annotate(@draw, 38, 32, 304, 28, card.value) {
-          self.fill = color
-          self.pointsize = 30
-          self.gravity = Magick::NorthGravity
-        }
-      end
-      # Type
-      image.annotate(@draw, 345, 22, 0, 74, card.supertype) {
-        self.fill = 'white'
-        self.pointsize = 18
-        self.gravity = Magick::NorthEastGravity
-      }
-      # Rules
-      unless card.rules.empty?
-        @draw.font = @style_dir+'font/Ubuntu-Medium.ttf'
-        @draw.pointsize = 17
-        if @rules_cols == 0
-          metrics = @draw.get_type_metrics(image, 'n')
-          @rules_cols = (315 / metrics.width).floor + 4
-        end
-        rules = card.text_multiline(card.rules, @rules_cols)
-        image.annotate(@draw, 315, 130, 30, 330, rules) {
-          self.fill = 'black'
-          self.gravity = Magick::NorthWestGravity
-        }
-      end
-      # Flavor text
-      unless card.flavor.empty?
-        y = 330+10
-        unless card.rules.empty?
-          metrics = @draw.get_multiline_type_metrics(image, rules)
-          y += metrics.height
-        end
-        @draw.font = @style_dir+'font/Ubuntu-Italic.ttf'
-        @draw.pointsize = 16
-        if @flavor_cols == 0
-          metrics = @draw.get_type_metrics(image, 'n')
-          @flavor_cols = (315 / metrics.width).floor + 4
-        end
-        image.annotate(@draw, 315, 130, 30, y, card.text_multiline(card.flavor, @flavor_cols)) {
-          self.fill = 'black'
-          self.gravity = Magick::NorthWestGravity
-        }
-      end
-      # Creator
-      @draw.font = @style_dir+'font/Ubuntu-Medium.ttf'
-      creator = "Card by #{card.creator}"
-      creator += ". Art by #{card.artist}" unless card.artist.empty?
-      image.annotate(@draw, 250, 14, 15, 500, creator) {
-        self.fill = 'black'
-        self.pointsize = 12
-        self.gravity = Magick::NorthWestGravity
-      } 
-      # Number
-      image.annotate(@draw, 360, 14, 0, 500, @set_code+"-#{card.number}/#{@num_cards}") {
-        self.gravity = Magick::NorthEastGravity
-      }
-      
-      # Picture
-      if @pics_dir
-        file = nil
-        ['.jpg','.jpeg','.gif','.png'].each{ |ext|
-          file1 = @pics_dir+card.number.to_s+ext
-          file2 = @pics_dir+card.name+ext
-          if FileTest.file?(file1)
-            file = file1
-            break
-          elsif FileTest.file?(file2)
-            file = file2
-          end
-        }
-        
-        unless file.nil?
-          pict = Magick::ImageList.new(file)
-          pict.resize_to_fill!(315, 218)
-          image.composite!(pict, 30, 104, Magick::OverCompositeOp)
-        end
-      end
-      
-      image.write('cards/'+sprintf("%03d", card.number)+'.jpg')
-    end
-    
-    def mkSetFolders
-      # Folder structure of the OCTGN set
-      @set_dir = @set_code+'-v'+@set_version
-      Dir.mkdir(@set_dir) unless FileTest.directory?(@set_dir)
-      Dir.chdir(@set_dir)
-      Dir.mkdir('_rels') unless FileTest.directory?('_rels')
-      Dir.mkdir('cards') unless FileTest.directory?('cards')
-    end
-    
-    def writeFiles
+    def write_files
       # Write the XML set definition
-      file = File.new( @set_code+".xml", "w:UTF-8" )
+      file = File.new( @set.code+".xml", "w:UTF-8" )
       file.puts( @xml_set )
       file.close
       
@@ -376,73 +276,24 @@ EOF
       file = File.new( "_rels/.rels", "w" )
       file.puts <<"EOF"
 <Relationships xmlns='http://schemas.openxmlformats.org/package/2006/relationships'>
-  <Relationship Target='/#{@set_code}.xml' Id='def' Type='http://schemas.octgn.org/set/definition' />
+  <Relationship Target='/#{@set.code}.xml' Id='def' Type='http://schemas.octgn.org/set/definition' />
 </Relationships>
 EOF
       file.close
       
       # Write resources XML file
-      file = File.new( "_rels/#{@set_code}.xml.rels", "w" )
+      file = File.new( "_rels/#{@set.code}.xml.rels", "w" )
       file.puts( @xml_res )
       file.close
     end
     
-    def printAndExit(msg)
+    def print_and_exit(msg)
       puts msg
       exit 0
     end
     
   end  # class << self
-end
-
-class Card
-  
-  attr_reader :name, :supertype, :type, :subtype, :rarity, :value, :rules, :flavor, :artist, :number, :creator
-  
-	def initialize(raw, number)
-    # Lackey columns:
-    # 0:Name  1:Set  2:ImageFile  3:Type  4:CornerValue  5:Text  6:FlavorText  7:Creator
-    raw = raw.split "\t"  # Split by tab char
-    type = raw[3].split /\s\-\s/
-    
-    @name = raw[0].strip
-    @type = type[0].strip
-    @subtype = type.length > 1 ? type[1..-1].join(' - ') : ''
-    @supertype = @type + (@subtype.empty? ? '' : ' - '+@subtype)
-    @rarity = 'Common'
-    @value = raw[4].strip
-    @rules = raw[5].strip
-    @flavor = raw[6].strip
-    @artist = ''
-    @number = number
-    @creator = raw[7].nil? ? '' : raw[7].rstrip
-	end
-  
-  def thing?
-    return /thing|objeto/i.match(@type) != nil
-  end
-  
-  def action?
-    return /action|acción/i.match(@type) != nil
-  end
-  
-  def text_multiline(text, cols)
-    m = []
-    line = ''
-    text.split(' ').each do |word|
-      if (line + word).length < cols
-        line += word + ' '
-      else
-        m.push line
-        line = word + ' '
-      end
-    end
-    m.push line
-    
-    return m.join '\n'
-  end
-  
-end
+end  # module Dvolatooc
 
 if File.basename(__FILE__) == File.basename($0)
   Dvolatooc.init(ARGV)
