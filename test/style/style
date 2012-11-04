@@ -17,6 +17,7 @@ name:
 	text-color:
 		default: white
 		Pudriéndote en tu propia Mierda: #FFE655
+		Acumulador Profesional: #FFE655
 	text-align: left
 	vertical-align: bottom
 	stretch: true

@@ -20,6 +20,6 @@ end
 
 desc "Compiles to Windows EXE using Ocra"
 task :build_ocra => ['bin'] do
-  rm 'bin/build_ocra.log' if File.exist?('bin/build.log')
+  rm 'bin/build_ocra.log' if File.exist?('bin/build_ocra.log')
   sh "ocra --verbose lib/#{input}.rb --output bin/#{input}.exe >> bin/build_ocra.log"
 end

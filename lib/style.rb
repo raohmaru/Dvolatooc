@@ -24,6 +24,7 @@
 
 require 'rubygems'
 require 'RMagick'
+require 'tempfile'
 
 class String
   def is_number?
@@ -38,9 +39,21 @@ module Dvolatooc
     FIELDS = %w(card templates name value supertype rules flavor copyright artist number picture)
     IMG_FORMAT = %w(.jpg .jpeg .gif .png)
 
-    def initialize(filename)
+    def initialize(dir=nil, pics=nil)
       @fields = {}
-      parse(filename) unless filename.nil? || !File.exist?(filename)
+      @pics = DIR::BASE+pics + '/' unless pics.nil? || !File.exist?(DIR::BASE+pics)
+      
+      unless dir.nil?
+        @dir = DIR::BASE+dir + '/'
+        parse(@dir+'style')
+      else
+        tf = Tempfile.new('Dvolatooc_def_style')
+        tf.puts DEF_STYLE
+        tf.rewind
+        tf.close
+        parse(tf.path)
+        tf.unlink
+      end
 
       @draw = Magick::Draw.new
       @cols = {}
@@ -98,8 +111,14 @@ module Dvolatooc
 
     def render(card, set)
       @card = card
-      tpl = field('templates').parse_value
-      @image = Magick::ImageList.new(DIR::STYLE+tpl)
+      
+      unless @fields['templates'].nil?
+        tpl = field('templates').filter
+        @image = Magick::ImageList.new(@dir+tpl)
+      else
+        attrs = field('card')
+        @image = Magick::Image.new(attrs['width'], attrs['height']) { self.background_color = "white" }
+      end
 
       draw_text(card.name, 'name')
       draw_text(card.value, 'value')
@@ -109,7 +128,7 @@ module Dvolatooc
       draw_text(card.creator, 'copyright')
       draw_text(card.artist, 'artist')
       draw_text([set.code, card.number, set.num_cards], 'number')
-      draw_pic('picture') if DIR::PICS
+      draw_pic('picture') if @pics
 
       @image.write('cards/'+sprintf("%03d", card.number)+'.jpg')
     end
@@ -119,7 +138,10 @@ module Dvolatooc
 
       f = field(field)
 
-      @draw.font = DIR::STYLE + f['font']
+      @draw.font = @dir + f['font'] unless f['font'].nil?
+      @draw.font_family = f['font-family'] unless f['font-family'].nil?
+      @draw.font_weight = f.font_weight
+      @draw.font_style  = f.font_style
       @draw.pointsize = f['font-size']
       @draw.fill = f.text_color
       @draw.gravity = f.align
@@ -171,8 +193,8 @@ module Dvolatooc
       file = nil
 
       IMG_FORMAT.each{ |ext|
-        file1 = DIR::PICS + @card.number.to_s + ext
-        file2 = DIR::PICS + @card.name + ext
+        file1 = @pics + @card.number.to_s + ext
+        file2 = @pics + @card.name + ext
         if FileTest.file?(file1)
           file = file1
           break
@@ -219,6 +241,19 @@ module Dvolatooc
       :bottomcenter  => Magick::SouthGravity,
       :bottomright   => Magick::SouthEastGravity
     }
+    
+    WEIGHT_TYPE = {
+      :light    => Magick::LighterWeight,
+      :normal   => Magick::NormalWeight,
+      :bold     => Magick::BoldWeight,
+      :bolder   => Magick::BolderWeight
+    }
+    
+    STYLE_TYPE = {
+      :normal   => Magick::NormalStyle,
+      :italic   => Magick::ItalicStyle,
+      :oblique  => Magick::ObliqueStyle
+    }
 
     def initialize(hash, card)
       self.merge!(hash)
@@ -226,7 +261,7 @@ module Dvolatooc
     end
 
     def text_color
-      parse_value(self['text-color'])
+      filter(self['text-color'])
     end
 
     def vertical_align
@@ -242,7 +277,18 @@ module Dvolatooc
       GRAVITY_NAMES[a.to_sym]
     end
 
-    def parse_value(v=nil)
+    def font_weight
+      v = self['font-weight']
+      return Magick::AnyWeight unless v
+      return WEIGHT_TYPE[v.to_sym] if v.is_a? String
+      v
+    end
+
+    def font_style
+      self['font-style'] ? STYLE_TYPE[self['font-style'] .to_sym] : Magick::AnyStyle
+    end
+
+    def filter(v=nil)
       v = self if v.nil?
 
       if v.is_a?(Hash)
@@ -259,4 +305,104 @@ module Dvolatooc
       v
     end
   end
+  
+  DEF_STYLE = <<EOF
+card:
+	width: 375
+	height: 523
+	
+name:
+	x: 30
+	y: 25
+	width: 266
+	height: 35	
+	font-family: arial
+	font-size: 30
+	font-weight: bold
+	text-color: black
+	vertical-align: bottom
+	stretch: true
+
+value:
+	x: 304
+	y: 25
+	width: 38
+	height: 32	
+	font-family: arial
+	font-size: 30
+	font-weight: bold
+	text-color: #7f7f7f
+	text-align: center
+
+supertype:
+	x: 30
+	y: 77
+	width: 345
+	height: 22	
+	font-family: arial
+	font-size: 18
+	font-weight: bold
+	text-color: 
+		Acción: #D90000
+		Objeto: #0B0FB5
+
+picture:
+	x: 30
+	y: 103
+	width: 315
+	height: 238
+	
+rules:
+	x: 30
+	y: 360
+	width: 315
+	height: 130	
+	font-family: arial
+	font-size: 18
+	text-color: black
+	multiline: true
+	
+flavor:
+	x: 30
+	y: 370
+	width: 315
+	height: 130	
+	font-family: arial
+	font-size: 16
+	font-style: italic
+	text-color: black
+	multiline: true
+	combined: rules
+	
+copyright:
+	x: 15
+	y: 500
+	width: 250
+	height: 14	
+	font-family: arial
+	font-size: 12
+	text-color: black
+	format: "Card by %s"
+	
+artist:
+	x: 15
+	y: 520
+	width: 250
+	height: 14	
+	font-family: arial
+	font-size: 12
+	text-color: black
+	format: "Art by %s"
+	
+number:
+	x: 0
+	y: 500
+	width: 360
+	height: 14	
+	font-family: arial
+	font-size: 12
+	text-color: black
+	text-align: right
+	format: "%s-%s/%s"
+EOF
 end  # module Dvolatooc

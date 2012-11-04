@@ -4,6 +4,10 @@
 Changelog
 ---------
 
+### v0.7.0
+* New command parameters for styles and pictures.
+* Default style if none defined.
+
 ### v0.6.5
 * Customizable style definition for rendered cards.
 * Formatted code following the Ruby Style Guide.

@@ -13,5 +13,5 @@ end
 
 desc "Builds up the 'Síndrome de Diógenes' set"
 task :sindrome do
-  ruby "../lib/dvolatooc.rb decks/s_ndrome_de_di_genes.txt -n 'Síndrome de Diógenes'"
+  ruby "../lib/dvolatooc.rb decks/s_ndrome_de_di_genes.txt -n 'Síndrome de Diógenes' -p pics" #-s style"
 end

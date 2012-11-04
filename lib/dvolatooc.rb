@@ -31,18 +31,16 @@ require 'builder/xmlmarkup'
 require 'active_support/ordered_hash' if RUBY_VERSION < "1.9"
 
 module Dvolatooc
-  VERSION = "0.6.5"
+  VERSION = "0.7.0"
 
   module DIR
-    BASE  = Dir.getwd
-    STYLE = BASE + '/style/'
-    PICS  = FileTest.directory?(BASE + '/pics/') ? BASE + '/pics/' : nil
+    BASE  = Dir.getwd + '/'
   end
 
   class << self
 
     def init(argv)
-      set = Struct.new(:code, :version, :name, :real_name, :game_id, :game_version, :num_cards)
+      set = Struct.new(:code, :version, :name, :real_name, :game_id, :game_version, :num_cards, :style, :pics)
       @set = set.new
       @set.game_id = '51ac5322-f399-4116-a38e-12573aba58ae'
       @set.game_version = '0.9.1'
@@ -88,8 +86,10 @@ Options:
     -gi <UUID>    Overrides the id of the target Dvorak OCTGN game.
                   It must be a canonical UUID string
     -gv <#.#.#>   Overrides the version of the target Dvorak OCTGN game
-    -n            Name of the set
+    -n <name>     Name of the set
     -v <#.#.#>    Define a version for this set. Defaults to #{@set.game_version}
+    -s <path>     Path to the style definition folder
+    -p <path>     Path to the pictures folder
 EOF
       unless argv.empty?
         while arg = argv.shift
@@ -102,6 +102,10 @@ EOF
               @set.name = argv.shift
             when /\A--setversion\z/, /\A-v\z/
               @set.version = argv.shift
+            when /\A--setstyle\z/, /\A-s\z/
+              @set.style = argv.shift
+            when /\A--setpics\z/, /\A-p\z/
+              @set.pics = argv.shift
             when /\A--version\z/
               print_and_exit "Dvolatooc #{VERSION}"
             when /\A--help\z/, /\A--./
@@ -175,7 +179,7 @@ EOF
       @xml_set = ''  # Objects to save the xml string
       @xml_res = ''
       i = 1
-      style = Style.new(DIR::STYLE+'style')
+      style = Style.new(@set.style, @set.pics)
       
       # key => card name, val => UUID object
       if RUBY_VERSION < "1.9"
