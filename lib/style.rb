@@ -22,6 +22,8 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
+require File.expand_path(File.dirname(__FILE__) + '/field')
+require File.expand_path(File.dirname(__FILE__) + '/def_style')
 require 'rubygems'
 require 'RMagick'
 require 'tempfile'
@@ -49,7 +51,6 @@ module Dvolatooc
       else
         tf = Tempfile.new('Dvolatooc_def_style')
         tf.puts DEF_STYLE
-        tf.rewind
         tf.close
         parse(tf.path)
         tf.unlink
@@ -117,7 +118,23 @@ module Dvolatooc
         @image = Magick::ImageList.new(@dir+tpl)
       else
         attrs = field('card')
-        @image = Magick::Image.new(attrs['width'], attrs['height']) { self.background_color = "white" }
+        @image = Magick::Image.new(attrs['width'], attrs['height']) { self.background_color = 'white' }
+        
+        unless attrs['border-color'].nil?
+          width = attrs['border-width'].nil? ? 8 : attrs['border-width']
+          width_2 = width / 2.0
+          radius = attrs['border-radius'].nil? ? 8 : attrs['border-radius']
+          @draw.stroke(attrs['border-color'])
+          @draw.stroke_width(width)
+          @draw.fill(attrs.background_color)
+          @draw.roundrectangle(width_2,width_2, attrs['width']-width_2, attrs['height']-width_2, radius, radius)
+          @draw.draw(@image)
+        end
+        
+        @draw.stroke('#D90000')
+        @draw.stroke_width(6)
+        @draw.line(30,71, 345,71)
+        @draw.draw(@image)
       end
 
       draw_text(card.name, 'name')
@@ -228,181 +245,4 @@ module Dvolatooc
     
   end  # class Style
 
-  class Field < Hash
-    
-    GRAVITY_NAMES = {
-      :topleft       => Magick::NorthWestGravity,
-      :topcenter     => Magick::NorthGravity,
-      :topright      => Magick::NorthEastGravity,
-      :centerleft    => Magick::WestGravity,
-      :centercenter  => Magick::CenterGravity,
-      :centerright   => Magick::EastGravity,
-      :bottomleft    => Magick::SouthWestGravity,
-      :bottomcenter  => Magick::SouthGravity,
-      :bottomright   => Magick::SouthEastGravity
-    }
-    
-    WEIGHT_TYPE = {
-      :light    => Magick::LighterWeight,
-      :normal   => Magick::NormalWeight,
-      :bold     => Magick::BoldWeight,
-      :bolder   => Magick::BolderWeight
-    }
-    
-    STYLE_TYPE = {
-      :normal   => Magick::NormalStyle,
-      :italic   => Magick::ItalicStyle,
-      :oblique  => Magick::ObliqueStyle
-    }
-
-    def initialize(hash, card)
-      self.merge!(hash)
-      @card = card
-    end
-
-    def text_color
-      filter(self['text-color'])
-    end
-
-    def vertical_align
-      self['vertical-align'] ? self['vertical-align'] : 'top'
-    end
-
-    def text_align
-      self['text-align'] ? self['text-align'] : 'left'
-    end
-
-    def align
-      a = vertical_align + text_align
-      GRAVITY_NAMES[a.to_sym]
-    end
-
-    def font_weight
-      v = self['font-weight']
-      return Magick::AnyWeight unless v
-      return WEIGHT_TYPE[v.to_sym] if v.is_a? String
-      v
-    end
-
-    def font_style
-      self['font-style'] ? STYLE_TYPE[self['font-style'] .to_sym] : Magick::AnyStyle
-    end
-
-    def filter(v=nil)
-      v = self if v.nil?
-
-      if v.is_a?(Hash)
-        if v[@card.name]
-          v = v[@card.name]
-        elsif v[@card.subtype]
-          v = v[@card.subtype]
-        elsif v[@card.type]
-          v = v[@card.type]
-        elsif v['default']
-          v = v['default']
-        end
-      end
-      v
-    end
-  end
-  
-  DEF_STYLE = <<EOF
-card:
-	width: 375
-	height: 523
-	
-name:
-	x: 30
-	y: 25
-	width: 266
-	height: 35	
-	font-family: arial
-	font-size: 30
-	font-weight: bold
-	text-color: black
-	vertical-align: bottom
-	stretch: true
-
-value:
-	x: 304
-	y: 25
-	width: 38
-	height: 32	
-	font-family: arial
-	font-size: 30
-	font-weight: bold
-	text-color: #7f7f7f
-	text-align: center
-
-supertype:
-	x: 30
-	y: 77
-	width: 345
-	height: 22	
-	font-family: arial
-	font-size: 18
-	font-weight: bold
-	text-color: 
-		Acción: #D90000
-		Objeto: #0B0FB5
-
-picture:
-	x: 30
-	y: 103
-	width: 315
-	height: 238
-	
-rules:
-	x: 30
-	y: 360
-	width: 315
-	height: 130	
-	font-family: arial
-	font-size: 18
-	text-color: black
-	multiline: true
-	
-flavor:
-	x: 30
-	y: 370
-	width: 315
-	height: 130	
-	font-family: arial
-	font-size: 16
-	font-style: italic
-	text-color: black
-	multiline: true
-	combined: rules
-	
-copyright:
-	x: 15
-	y: 500
-	width: 250
-	height: 14	
-	font-family: arial
-	font-size: 12
-	text-color: black
-	format: "Card by %s"
-	
-artist:
-	x: 15
-	y: 520
-	width: 250
-	height: 14	
-	font-family: arial
-	font-size: 12
-	text-color: black
-	format: "Art by %s"
-	
-number:
-	x: 0
-	y: 500
-	width: 360
-	height: 14	
-	font-family: arial
-	font-size: 12
-	text-color: black
-	text-align: right
-	format: "%s-%s/%s"
-EOF
 end  # module Dvolatooc

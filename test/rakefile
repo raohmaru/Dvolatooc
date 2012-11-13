@@ -11,7 +11,7 @@ task :test do
   end
 end
 
-desc "Builds up the 'Síndrome de Diógenes' set"
+desc "Builds up the 'SÃ­ndrome de DiÃ³genes' set"
 task :sindrome do
-  ruby "../lib/dvolatooc.rb decks/s_ndrome_de_di_genes.txt -n 'Síndrome de Diógenes' -p pics" #-s style"
+  ruby "../lib/dvolatooc.rb decks/s_ndrome_de_di_genes.txt -n 'SÃ­ndrome de DiÃ³genes' -p pics" #-s style"
 end
