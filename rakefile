@@ -7,15 +7,17 @@ input = 'dvolatooc'
 
 directory 'bin'
 
-file "bin/#{input}.exy" => ['bin', "lib/#{input}.rb"] do
-  sh "mkexy -KU lib/#{input}.rb"
-  mv "lib/#{input}.exy", "bin/#{input}.exy"
+file "lib/#{input}.exy" => ['bin', "lib/#{input}.rb"] do
+  Dir.chdir "lib"
+  sh "mkexy -KU #{input}.rb"
 end
 
 desc "Compiles to Windows EXE using Exerb"
-task :build => ["bin/#{input}.exy"] do
-  rm 'bin/build.log' if File.exist?('bin/build.log')
-  sh "exerb --verbose bin/#{input}.exy -o #{input}.exe >> bin/build.log"
+task :build => ["lib/#{input}.exy"] do
+  rm '../bin/build.log' if File.exist?('../bin/build.log')
+  sh "exerb --verbose #{input}.exy -o #{input}.exe >> ../bin/build.log"
+  mv "#{input}.exy", "../bin/#{input}.exy"
+  mv "#{input}.exe", "../bin/#{input}.exe"
 end
 
 desc "Compiles to Windows EXE using Ocra"

@@ -22,8 +22,13 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require File.expand_path(File.dirname(__FILE__) + '/card')
-require File.expand_path(File.dirname(__FILE__) + '/style')
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
+require 'card'
+require 'style'
+require 'field'
+require 'def_style'
+
 require 'rubygems'
 require 'uuidtools'
 require 'builder/xmlmarkup'

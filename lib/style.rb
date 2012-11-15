@@ -22,8 +22,6 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require File.expand_path(File.dirname(__FILE__) + '/field')
-require File.expand_path(File.dirname(__FILE__) + '/def_style')
 require 'rubygems'
 require 'RMagick'
 require 'tempfile'
