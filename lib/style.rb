@@ -38,7 +38,7 @@ module Dvolatooc
 
   class Style
 
-    FIELDS = %w(card templates name value supertype rules flavor copyright artist number picture)
+    FIELDS = %w(card templates name value supertype rules flavor copyright artist number picture draw)
     IMG_FORMAT = %w(.jpg .jpeg .gif .png)
 
     def initialize(dir=nil, pics=nil)
@@ -98,6 +98,7 @@ module Dvolatooc
     end  # def getProps
 
     def line_to_array(line)
+      line = line.partition('//').shift
       line.split(':').map { |e| e =~ /^\s*$/ ? nil : e.strip }.compact
     end
 
@@ -112,30 +113,17 @@ module Dvolatooc
 
     def render(card, set)
       @card = card
+      @attrs = field('card')
       
       unless @fields['templates'].nil?
         tpl = field('templates').filter
         @image = Magick::ImageList.new(@dir+tpl)
       else
-        attrs = field('card')
-        @image = Magick::Image.new(attrs['width'], attrs['height']) { self.background_color = 'white' }
-        
-        unless attrs['border-color'].nil?
-          width = attrs['border-width'].nil? ? 8 : attrs['border-width']
-          width_2 = width / 2.0
-          radius = attrs['border-radius'].nil? ? 8 : attrs['border-radius']
-          @draw.stroke(attrs['border-color'])
-          @draw.stroke_width(width)
-          @draw.fill(attrs.background_color)
-          @draw.roundrectangle(width_2,width_2, attrs['width']-width_2, attrs['height']-width_2, radius, radius)
-          @draw.draw(@image)
-        end
-        
-        @draw.stroke('#D90000')
-        @draw.stroke_width(6)
-        @draw.line(30,71, 345,71)
-        @draw.draw(@image)
+        @image = Magick::Image.new(@attrs['width'], @attrs['height']) { self.background_color = 'white' }
       end
+      
+      draw_border() unless @attrs.border_color.nil?
+      draw_extra(field('draw')) if @fields['draw']
 
       draw_text(card.name, 'name')
       draw_text(card.value, 'value')
@@ -148,6 +136,49 @@ module Dvolatooc
       draw_pic('picture') if @pics
 
       @image.write('cards/'+sprintf("%03d", card.number)+'.jpg')
+    end
+
+    def draw_border
+      @img_cache = {} if @img_cache.nil?
+
+      if @img_cache[@attrs.border_color].nil?
+        tmp = Magick::Image.new(@attrs['width'], @attrs['height'])
+        width = @attrs['border-width'].nil? ? 8 : @attrs['border-width']
+        width_2 = width / 2.0
+        radius = @attrs['border-radius'].nil? ? 8 : @attrs['border-radius']
+        @draw.stroke(@attrs.border_color)
+        @draw.stroke_width(width)
+        @draw.fill(@attrs.background_color)
+        @draw.roundrectangle(width_2,width_2, @attrs['width']-width_2, @attrs['height']-width_2, radius, radius)
+        @draw.draw(tmp)
+        @img_cache[@attrs.border_color] = tmp
+      end
+
+      @image.composite!(@img_cache[@attrs.border_color], 0, 0, Magick::OverCompositeOp)
+    end
+
+    def draw_extra(d)      
+      @img_cache = {} if @img_cache.nil?
+
+      d.each_key { |k|
+        cmd = d.filter(d[k])
+        if @img_cache[cmd].nil?
+          arr = cmd.match(/(\w+)\((.+)\)/)
+          if arr.length == 3
+            if arr[1] == 'stroke'
+              tmp = Magick::Image.new(@attrs['width'], @attrs['height'])
+              params = arr[2].split(',')
+              @draw.stroke(params[0])
+              @draw.stroke_width(params[1].to_f)
+              @draw.line(params[2].to_f, params[3].to_f, params[4].to_f, params[5].to_f)
+              @draw.draw(tmp)
+              @img_cache[cmd] = tmp
+            end
+          end
+        end
+
+        @image.composite!(@img_cache[cmd], 0, 0, Magick::OverCompositeOp) unless @img_cache[cmd].nil?
+      }
     end
 
     def draw_text(str, field)

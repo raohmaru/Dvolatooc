@@ -90,6 +90,10 @@ module Dvolatooc
     def background_color
       self['background-color'] ? filter(self['background-color']) : 'white'
     end
+    
+    def border_color
+      self['border-color'] ? filter(self['border-color']) : nil
+    end
 
     def filter(v=nil)
       v = self if v.nil?
