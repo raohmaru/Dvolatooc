@@ -59,41 +59,51 @@ module Dvolatooc
       @card = card
     end
 
-    def text_color
-      filter(self['text-color'])
-    end
+    def x;  get_value('x', 0);  end
+    def y;  get_value('y', 0);  end
+    def width;  get_value('width');  end
+    def height; get_value('height'); end
 
-    def vertical_align
-      self['vertical-align'] ? self['vertical-align'] : 'top'
-    end
-
-    def text_align
-      self['text-align'] ? self['text-align'] : 'left'
-    end
-
-    def align
-      a = vertical_align + text_align
-      GRAVITY_NAMES[a.to_sym]
-    end
+    def font; get_value('font'); end
+    def font_family; get_value('font-family'); end
+    def font_size; get_value('font-size', 18); end
 
     def font_weight
-      v = self['font-weight']
+      v = get_value('font-weight')
       return Magick::AnyWeight unless v
       return WEIGHT_TYPE[v.to_sym] if v.is_a? String
       v
     end
 
     def font_style
-      self['font-style'] ? STYLE_TYPE[self['font-style'] .to_sym] : Magick::AnyStyle
+      v = get_value('font-style')
+      v ? STYLE_TYPE[v.to_sym] : Magick::AnyStyle
     end
+
+    def text_color; get_value('text-color'); end
+    def background_color; get_value('background-color', 'white'); end
+
+    def format
+      v = get_value('format')
+      v.gsub!(/(^")|("$)/, '') if v
+      v
+    end
+
+    def vertical_align; get_value('vertical-align', 'top'); end
+    def text_align; get_value('text-align', 'left'); end
+
+    def align
+      a = vertical_align + text_align
+      GRAVITY_NAMES[a.to_sym]
+    end
+
+    def multiline; get_value('multiline') === 'true'; end
+    def stretch; get_value('stretch') === 'true'; end
+    def combined; get_value('combined'); end    
     
-    def background_color
-      self['background-color'] ? filter(self['background-color']) : 'white'
-    end
-    
-    def border_color
-      self['border-color'] ? filter(self['border-color']) : nil
-    end
+    def border_color; get_value('border-color'); end
+    def border_width; get_value('border-width', 8); end
+    def border_radius; get_value('border-radius', 8); end
 
     def filter(v=nil)
       v = self if v.nil?
@@ -110,6 +120,11 @@ module Dvolatooc
         end
       end
       v
+    end
+
+    private
+    def get_value(name, v=nil)
+      self[name] ? filter(self[name]) : v
     end
   end  # class FIeld
   

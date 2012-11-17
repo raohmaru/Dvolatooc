@@ -64,7 +64,7 @@ module Dvolatooc
         arr = line_to_array(line)
         unless arr.empty?
           if arr.length == 1 && FIELDS.include?(arr[0])
-            @fields[arr[0]] = get_props(1)
+            @fields[arr[0].to_sym] = get_props(1)
           end
         end
       end
@@ -111,27 +111,27 @@ module Dvolatooc
 
     def render(card, set)
       @card = card
-      @attrs = field('card')
+      @attrs = field(:card)
       
-      unless @fields['templates'].nil?
-        tpl = field('templates').filter
+      unless @fields[:templates].nil?
+        tpl = field(:templates).filter
         @image = Magick::ImageList.new(@dir+tpl)
       else
-        @image = Magick::Image.new(@attrs['width'], @attrs['height']) { self.background_color = 'white' }
+        @image = Magick::Image.new(@attrs.width, @attrs.height) { self.background_color = 'white' }
       end
       
       draw_border() unless @attrs.border_color.nil?
-      draw_extra(field('draw')) if @fields['draw']
+      draw_extra(field(:draw)) if @fields[:draw]
 
-      draw_text(card.name, 'name')
-      draw_text(card.value, 'value')
-      draw_text(card.supertype, 'supertype')
-      draw_text(card.rules, 'rules')
-      draw_text(card.flavor, 'flavor')
-      draw_text(card.creator, 'copyright')
-      draw_text(card.artist, 'artist')
-      draw_text([set.code, card.number, set.num_cards], 'number')
-      draw_pic('picture') if @pics
+      draw_text(card.name, :name)
+      draw_text(card.value, :value)
+      draw_text(card.supertype, :supertype)
+      draw_text(card.rules, :rules)
+      draw_text(card.flavor, :flavor)
+      draw_text(card.creator, :copyright)
+      draw_text(card.artist, :artist)
+      draw_text([set.code, card.number, set.num_cards], :number)
+      draw_pic(:picture) if @pics
 
       @image.write('cards/'+sprintf("%03d", card.number)+'.jpg')
     end
@@ -140,14 +140,14 @@ module Dvolatooc
       @img_cache = {} if @img_cache.nil?
 
       if @img_cache[@attrs.border_color].nil?
-        tmp = Magick::Image.new(@attrs['width'], @attrs['height'])
-        width = @attrs['border-width'].nil? ? 8 : @attrs['border-width']
-        width_2 = width / 2.0
-        radius = @attrs['border-radius'].nil? ? 8 : @attrs['border-radius']
+        tmp = Magick::Image.new(@attrs.width, @attrs.height)
+        w = @attrs.border_width
+        w_2 = w / 2.0
+        radius = @attrs.border_radius
         @draw.stroke(@attrs.border_color)
-        @draw.stroke_width(width)
+        @draw.stroke_width(w)
         @draw.fill(@attrs.background_color)
-        @draw.roundrectangle(width_2,width_2, @attrs['width']-width_2, @attrs['height']-width_2, radius, radius)
+        @draw.roundrectangle( w_2,w_2, @attrs.width-w_2, @attrs.height-w_2, radius, radius )
         @draw.draw(tmp)
         @img_cache[@attrs.border_color] = tmp
       end
@@ -155,7 +155,7 @@ module Dvolatooc
       @image.composite!(@img_cache[@attrs.border_color], 0, 0, Magick::OverCompositeOp)
     end
 
-    def draw_extra(d)      
+    def draw_extra(d)
       @img_cache = {} if @img_cache.nil?
 
       d.each_key { |k|
@@ -164,7 +164,7 @@ module Dvolatooc
           arr = cmd.match(/(\w+)\((.+)\)/)
           if arr.length == 3
             if arr[1] == 'stroke'
-              tmp = Magick::Image.new(@attrs['width'], @attrs['height'])
+              tmp = Magick::Image.new(@attrs.width, @attrs.height)
               params = arr[2].split(',')
               @draw.stroke(params[0])
               @draw.stroke_width(params[1].to_f)
@@ -184,46 +184,45 @@ module Dvolatooc
 
       f = field(field)
 
-      @draw.font = @dir + f['font'] unless f['font'].nil?
-      @draw.font_family = f['font-family'] unless f['font-family'].nil?
+      @draw.font = @dir + f.font unless f.font.nil?
+      @draw.font_family = f.font_family unless f.font_family.nil?
       @draw.font_weight = f.font_weight
       @draw.font_style  = f.font_style
-      @draw.pointsize = f['font-size']
+      @draw.pointsize = f.font_size
       @draw.fill = f.text_color
       @draw.gravity = f.align
 
-      x = f['x']
-      y = f['y']
+      x = f.x
+      y = f.y
 
       y = -y if f.vertical_align == 'bottom'
       x = -x if f.text_align == 'right'
 
-      unless f['format'].nil?
-        format = f['format'].gsub(/(^")|("$)/, '')
+      unless f.format.nil?
         if str.is_a?(Array)
-          str = sprintf(format, *str)
+          str = sprintf(f.format, *str)
         else
-          str = sprintf(format, str)
+          str = sprintf(f.format, str)
         end
       end
 
-      unless f['multiline'].nil?
+      if f.multiline
         if @cols[field].nil?
           metrics = @draw.get_type_metrics(@image, 'n')
-          @cols[field] = (f['width'] / metrics.width).floor + 4
+          @cols[field] = (f.width / metrics.width).floor + 4
         end
         str = text_multiline(str, @cols[field])
       end
 
-      unless f['stretch'].nil?
+      if f.stretch
         metrics = @draw.get_type_metrics(@image, str)
-        if metrics.width > f['width']
-          @draw.pointsize = f['font-size']*f['width'] / metrics.width
+        if metrics.width > f.width
+          @draw.pointsize = f.font_size*f.width / metrics.width
         end
       end
 
-      unless f['combined'].nil? || !FIELDS.include?(f['combined'])
-        other = @card.send(f['combined'])
+      unless f.combined.nil? || !FIELDS.include?(f.combined)
+        other = @card.send(f.combined)
         unless other.empty?
           metrics = @draw.get_multiline_type_metrics(@image, other)
           y += metrics.height + 20
@@ -231,7 +230,7 @@ module Dvolatooc
       end
 
       #              draw, width, height, x, y, text
-      @image.annotate(@draw, f['width'], f['height'], x, y, str)
+      @image.annotate(@draw, f.width, f.height, x, y, str)
     end
 
     def draw_pic(field)
@@ -251,7 +250,7 @@ module Dvolatooc
 
       unless file.nil?
         pict = Magick::ImageList.new(file)
-        pict.resize_to_fill!(f['width'], f['height'])
+        pict.resize_to_fill!(f.width, f.height)
         @image.composite!(pict, f['x'], f['y'], Magick::OverCompositeOp)
       end
     end
