@@ -259,6 +259,19 @@ module Dvolatooc
       m = []
       line = ''
       text.split(' ').each do |word|
+        words = word.split('-')
+        if words.length > 1
+          words.each do |w|
+            if (line + w).length < cols
+              line += w + '-'
+            else
+              m.push line
+              line = w + ' '
+            end
+          end
+          next
+        end
+
         if (line + word).length < cols
           line += word + ' '
         else

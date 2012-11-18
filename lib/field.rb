@@ -57,6 +57,7 @@ module Dvolatooc
     def initialize(hash, card)
       self.merge!(hash)
       @card = card
+      @cache = {}
     end
 
     def x;  get_value('x', 0);  end
@@ -119,13 +120,26 @@ module Dvolatooc
           v = v['default']
         end
       end
-      v
+      return v
     end
 
     private
     def get_value(name, v=nil)
-      self[name] ? filter(self[name]) : v
+      return @cache[name] if @cache[name] != nil
+
+      v = self[name] ? filter(self[name]) : v
+      if v =~ /\{.+\}/
+        v = v.match(/\{(.+)\}/)[1].strip
+        # http://spin.atomicobject.com/2012/06/05/safely-parsing-parameters-from-a-rails-log/
+        proc do
+          $SAFE = 4
+          v = @card.instance_eval(v)
+        end.call
+      end
+      @cache[name] = v
+      return v
     end
+
   end  # class FIeld
   
 end  # module Dvolatooc

@@ -31,7 +31,9 @@ card:
 	background-color: white
 	border-color: 
 		Acción: #D90000
+		Action: #D90000
 		Objeto: #0B0FB5
+		Thing: #0B0FB5
 	border-radius: 8
 	border-width: 12
 
@@ -39,12 +41,14 @@ draw:
 	title_line: 
 		//		  cmd    color  size x1,y1  x2,y2
 		Acción: stroke(#D90000, 6, 30,71, 345,71)
+		Action: stroke(#D90000, 6, 30,71, 345,71)
 		Objeto: stroke(#0B0FB5, 6, 30,71, 345,71)
+		Thing: stroke(#0B0FB5, 6, 30,71, 345,71)
 	
 name:
 	x: 30
 	y: 25
-	width: 269
+	width: { if value.empty? then 310 else 269 end }
 	height: 35	
 	font-family: arial
 	font-size: 30
@@ -74,17 +78,19 @@ supertype:
 	font-weight: bold
 	text-color:
 		Acción: #D90000
+		Action: #D90000
 		Objeto: #0B0FB5
+		Thing: #0B0FB5
 
 picture:
 	x: 30
 	y: 103
 	width: 315
-	height: 238
+	height: 228
 	
 rules:
 	x: 30
-	y: 360
+	y: 350
 	width: 315
 	height: 130	
 	font-family: arial
@@ -94,7 +100,7 @@ rules:
 	
 flavor:
 	x: 30
-	y: 370
+	y: 360
 	width: 315
 	height: 130	
 	font-family: arial

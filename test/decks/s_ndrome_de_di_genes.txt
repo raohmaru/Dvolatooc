@@ -16,7 +16,7 @@ Piano Roto	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Todavía funci
 Abeto Seco	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Me ahorraré comprar uno dentro de seis meses!	CashCrazed
 Miniaturas Oficiales	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Algún día serán objetos de coleccionista!	CashCrazed
 Montón de Latas de Cerveza	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Si consigo suficientes, me darán un dólar por ellas!	CashCrazed
-Televisor Quemado.	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Te juro que mañana lo arreglo!	CashCrazed
+Televisor Quemado	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Te juro que mañana lo arreglo!	CashCrazed
 Ropa de los 80	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Se volverá a poner de moda, sólo es cuestión de tiempo!	CashCrazed
 Sobras de Comida	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Mételas al microondas y estará tan rica como el primer día!	CashCrazed
 Platos Sucios	s_ndrome_de_di_genes	objeto_basura	Objeto - basura			¡Vale, vale, ya los lavaré el viernes!	CashCrazed
