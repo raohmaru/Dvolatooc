@@ -42,6 +42,7 @@ module Dvolatooc
     def initialize(dir=nil, pics=nil)
       @fields = {}
       @pics = DIR::BASE+pics + '/' unless pics.nil? || !File.exist?(DIR::BASE+pics)
+      @img_cache = {}
       
       unless dir.nil?
         @dir = DIR::BASE+dir + '/'
@@ -137,8 +138,6 @@ module Dvolatooc
     end
 
     def draw_border
-      @img_cache = {} if @img_cache.nil?
-
       if @img_cache[@attrs.border_color].nil?
         tmp = Magick::Image.new(@attrs.width, @attrs.height)
         w = @attrs.border_width
@@ -156,8 +155,6 @@ module Dvolatooc
     end
 
     def draw_extra(d)
-      @img_cache = {} if @img_cache.nil?
-
       d.each_key { |k|
         cmd = d.filter(d[k])
         if @img_cache[cmd].nil?

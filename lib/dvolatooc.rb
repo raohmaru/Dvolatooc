@@ -48,7 +48,7 @@ module Dvolatooc
       set = Struct.new(:code, :version, :name, :real_name, :game_id, :game_version, :num_cards, :style, :pics)
       @set = set.new
       @set.game_id = '51ac5322-f399-4116-a38e-12573aba58ae'
-      @set.game_version = '0.9.1'
+      @set.game_version = '0.9.2'
       @set.version  = '1.0.0'
       
       parse_args(argv)
@@ -222,7 +222,6 @@ EOF
             ) {
               xml.property :name => 'Type',     :value => card.type
               xml.property :name => 'Subtype',  :value => card.subtype
-              xml.property :name => 'Rarity',   :value => card.rarity
               xml.property :name => 'Value',    :value => card.value
               xml.property :name => 'Rules',    :value => card.rules
               xml.property :name => 'Flavor',   :value => card.flavor

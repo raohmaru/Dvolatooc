@@ -25,7 +25,7 @@
 module Dvolatooc
   class Card
 
-    attr_reader :name, :supertype, :type, :subtype, :rarity, :value, :rules, :flavor, :artist, :number, :creator, :id
+    attr_reader :name, :supertype, :type, :subtype, :value, :rules, :flavor, :artist, :number, :creator, :id
     
     def initialize(raw, number, set)
       # Lackey columns:
@@ -39,7 +39,6 @@ module Dvolatooc
       @type = type[0].strip
       @subtype = type.length > 1 ? type[1..-1].join(' - ') : ''
       @supertype = @type + (@subtype.empty? ? '' : ' - '+@subtype)
-      @rarity = 'Common'
       @value = raw[4].strip
       @rules = raw[5].strip
       @flavor = raw[6].strip
