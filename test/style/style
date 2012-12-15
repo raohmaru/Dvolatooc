@@ -6,11 +6,15 @@ templates:
 	Acción: cards/action.png
 	Objeto: cards/thing.png
 	Riesgo para la Salud: cards/hazard.png
+
+drawing:
+	//	   							   cmd   src			  x    y
+	value: { unless value.empty? then 'image(cards/value.png, 302, 29)' end }
 	
 name:
 	x: 30
 	y: 30
-	width: 266
+	width: { if value.empty? then 310 else 266 end }
 	height: 35	
 	font: font/EurostileT-Black.ttf
 	font-size: 30
@@ -57,7 +61,7 @@ rules:
 	width: 315
 	height: 130	
 	font: font/Ubuntu-Medium.ttf
-	font-size: 17
+	font-size: 18
 	text-color: black
 	text-align: left
 	multiline: true
@@ -68,7 +72,7 @@ flavor:
 	width: 315
 	height: 130	
 	font: font/Ubuntu-Italic.ttf
-	font-size: 16
+	font-size: 17
 	text-color: black
 	text-align: left
 	multiline: true

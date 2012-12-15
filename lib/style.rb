@@ -1,27 +1,3 @@
-#--
-# Lackey set to OCTGN set package converter
-# Copyright (c) 2012 Raohmaru
-
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish, 
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#++
-
 require 'rubygems'
 require 'RMagick'
 require 'tempfile'
@@ -36,7 +12,7 @@ module Dvolatooc
 
   class Style
 
-    FIELDS = %w(card templates name value supertype rules flavor copyright artist number picture draw)
+    FIELDS = %w(card templates name value supertype rules flavor copyright artist number picture drawing)
     IMG_FORMAT = %w(.jpg .jpeg .gif .png)
 
     def initialize(dir=nil, pics=nil)
@@ -122,7 +98,7 @@ module Dvolatooc
       end
       
       draw_border() unless @attrs.border_color.nil?
-      draw_extra(field(:draw)) if @fields[:draw]
+      draw_extra(field(:drawing)) if @fields[:drawing]
 
       draw_text(card.name, :name)
       draw_text(card.value, :value)
@@ -157,22 +133,40 @@ module Dvolatooc
     def draw_extra(d)
       d.each_key { |k|
         cmd = d.filter(d[k])
+        next if cmd.nil?
         if @img_cache[cmd].nil?
           arr = cmd.match(/(\w+)\((.+)\)/)
           if arr.length == 3
+            params = arr[2].split(',')
             if arr[1] == 'stroke'
               tmp = Magick::Image.new(@attrs.width, @attrs.height)
-              params = arr[2].split(',')
               @draw.stroke(params[0])
               @draw.stroke_width(params[1].to_f)
               @draw.line(params[2].to_f, params[3].to_f, params[4].to_f, params[5].to_f)
               @draw.draw(tmp)
               @img_cache[cmd] = tmp
+
+            elsif arr[1] == 'image'
+              tmp = Magick::ImageList.new(@dir+params[0])
+              @img_cache[cmd] = {
+                :src => tmp,
+                :x => params[1].to_f,
+                :y => params[2].to_f
+              }
             end
           end
         end
 
-        @image.composite!(@img_cache[cmd], 0, 0, Magick::OverCompositeOp) unless @img_cache[cmd].nil?
+        unless @img_cache[cmd].nil?
+          img = @img_cache[cmd]
+          x = y = 0
+          if img.is_a?(Hash)
+            x = img[:x]
+            y = img[:y]
+            img = img[:src]
+          end
+          @image.composite!(img, x, y, Magick::OverCompositeOp)
+        end
       }
     end
 

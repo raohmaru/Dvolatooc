@@ -24,6 +24,7 @@
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
+require 'version'
 require 'card'
 require 'style'
 require 'field'
@@ -36,7 +37,6 @@ require 'builder/xmlmarkup'
 require 'active_support/ordered_hash' if RUBY_VERSION < "1.9"
 
 module Dvolatooc
-  VERSION = "0.7.0"
 
   module DIR
     BASE  = Dir.getwd + '/'

@@ -4,6 +4,9 @@
 Changelog
 ---------
 
+### v0.7.1
+* New drawing command for style definition: image().
+
 ### v0.7.0
 * New command parameters for styles and pictures.
 * Default style if none defined.
