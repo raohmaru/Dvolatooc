@@ -16,12 +16,13 @@ card:
 
 drawing:
 	title_line: 
-		//		  cmd    color  size x1,y1  x2,y2
+		//		cmd    color  size x1,y1  x2,y2
 		Acción: stroke(#D90000, 6, 30,71, 345,71)
 		Action: stroke(#D90000, 6, 30,71, 345,71)
 		Objeto: stroke(#0B0FB5, 6, 30,71, 345,71)
 		Thing: stroke(#0B0FB5, 6, 30,71, 345,71)
 		default: stroke(#666666, 6, 30,71, 345,71)
+	bottom_line: stroke(#333333, 1, 30,485, 345,485)
 	
 name:
 	x: 30
@@ -65,33 +66,34 @@ picture:
 	x: 30
 	y: 103
 	width: 315
-	height: 228
+	height: 220
 	
 rules:
 	x: 30
-	y: 350
+	y: 342
 	width: 315
-	height: 130	
+	height: 138
 	font-family: arial
 	font-size: 18
 	text-color: black
 	multiline: true
+	stretch: true
 	
 flavor:
 	x: 30
-	y: 360
+	y: 352
 	width: 315
-	height: 130	
+	height: 138
 	font-family: arial
 	font-size: 16
 	font-style: italic
-	text-color: black
+	text-color: #555555
 	multiline: true
 	combined: rules
 	
-copyright:
+creator:
 	x: 30
-	y: 490
+	y: 492
 	width: 250
 	height: 14	
 	font-family: arial
@@ -101,17 +103,18 @@ copyright:
 	
 artist:
 	x: 30
-	y: 480
+	y: 492
 	width: 250
 	height: 14	
 	font-family: arial
 	font-size: 12
 	text-color: black
 	format: "Art by %s"
+	combined: creator right
 	
 number:
 	x: 0
-	y: 490
+	y: 492
 	width: 345
 	height: 14	
 	font-family: arial

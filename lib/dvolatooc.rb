@@ -50,6 +50,7 @@ module Dvolatooc
       @set.game_id = '51ac5322-f399-4116-a38e-12573aba58ae'
       @set.game_version = '0.9.2'
       @set.version  = '1.0.0'
+      @duplicated = 0
       
       parse_args(argv)
       check_args
@@ -58,7 +59,7 @@ module Dvolatooc
       write_files
 
       puts "Set '#{@set.name}' created\n"
-      puts "Founded #{@set.num_cards} cards\n"
+      puts "Founded #{@set.num_cards} cards" + (@duplicated > 0 ? " (#{@duplicated} duplicated)" : "")
       puts "Files stored at #@set_dir"
     end
     
@@ -212,7 +213,10 @@ EOF
           @file.each_with_index do |line, index|
             next if index == 0  # Skip 1st line since are columns names
             card = Card.new(line, i, @set)
-            next unless cards[card.name].nil?  # Skip duplicated cards
+            unless cards[card.name].nil?  # Skip duplicated cards
+              @duplicated += 1
+              next
+            end
             cards[card.name] = card
             
             xml.card(

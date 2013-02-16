@@ -65,6 +65,7 @@ rules:
 	text-color: black
 	text-align: left
 	multiline: true
+	stretch: true
 	
 flavor:
 	x: 30
@@ -78,7 +79,7 @@ flavor:
 	multiline: true
 	combined: rules
 	
-copyright:
+creator:
 	x: 15
 	y: 500
 	width: 250
@@ -91,7 +92,7 @@ copyright:
 	
 artist:
 	x: 15
-	y: 520
+	y: 500
 	width: 250
 	height: 14	
 	font: font/Ubuntu-Medium.ttf
@@ -99,6 +100,7 @@ artist:
 	text-color: black
 	text-align: left
 	format: "Art by %s"
+	combined: creator right
 	
 number:
 	x: 0

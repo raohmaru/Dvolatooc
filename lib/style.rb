@@ -12,7 +12,7 @@ module Dvolatooc
 
   class Style
 
-    FIELDS = %w(card templates name value supertype rules flavor copyright artist number picture drawing)
+    FIELDS = %w(card templates name value supertype rules flavor creator artist number picture drawing)
     IMG_FORMAT = %w(.jpg .jpeg .gif .png)
 
     def initialize(dir=nil, pics=nil)
@@ -21,9 +21,10 @@ module Dvolatooc
       @img_cache = {}
       
       unless dir.nil?
-        @dir = DIR::BASE+dir + '/'
+        @dir = DIR::BASE + dir + '/'
         parse(@dir+'style')
       else
+        @dir = DIR::BASE + '/'
         tf = Tempfile.new('Dvolatooc_def_style')
         tf.puts DEF_STYLE
         tf.close
@@ -31,7 +32,6 @@ module Dvolatooc
         tf.unlink
       end
 
-      @draw = Magick::Draw.new
       @cols = {}
     end
 
@@ -87,6 +87,7 @@ module Dvolatooc
     end
 
     def render(card, set)
+      puts "Rendering <<#{card.name}>>"
       @card = card
       @attrs = field(:card)
       
@@ -94,7 +95,8 @@ module Dvolatooc
         tpl = field(:templates).filter
         @image = Magick::ImageList.new(@dir+tpl)
       else
-        @image = Magick::Image.new(@attrs.width, @attrs.height) { self.background_color = 'white' }
+        bgcolor = @attrs.background_color
+        @image = Magick::Image.new(@attrs.width, @attrs.height) { self.background_color = bgcolor }
       end
       
       draw_border() unless @attrs.border_color.nil?
@@ -105,25 +107,27 @@ module Dvolatooc
       draw_text(card.supertype, :supertype)
       draw_text(card.rules, :rules)
       draw_text(card.flavor, :flavor)
-      draw_text(card.creator, :copyright)
+      draw_text(card.creator, :creator)
       draw_text(card.artist, :artist)
       draw_text([set.code, card.number, set.num_cards], :number)
       draw_pic(:picture) if @pics
 
       @image.write('cards/'+sprintf("%03d", card.number)+'.jpg')
+      @image.destroy!
     end
 
     def draw_border
       if @img_cache[@attrs.border_color].nil?
-        tmp = Magick::Image.new(@attrs.width, @attrs.height)
+        tmp = Magick::Image.new(@attrs.width, @attrs.height) { self.background_color = 'none' }
         w = @attrs.border_width
         w_2 = w / 2.0
         radius = @attrs.border_radius
-        @draw.stroke(@attrs.border_color)
-        @draw.stroke_width(w)
-        @draw.fill(@attrs.background_color)
-        @draw.roundrectangle( w_2,w_2, @attrs.width-w_2, @attrs.height-w_2, radius, radius )
-        @draw.draw(tmp)
+        draw = Magick::Draw.new
+        draw.stroke(@attrs.border_color)
+        draw.stroke_width(w)
+        draw.fill('none')
+        draw.roundrectangle( w_2,w_2, @attrs.width-w_2, @attrs.height-w_2, radius, radius )
+        draw.draw(tmp)
         @img_cache[@attrs.border_color] = tmp
       end
 
@@ -139,13 +143,13 @@ module Dvolatooc
           if arr.length == 3
             params = arr[2].split(',')
             if arr[1] == 'stroke'
-              tmp = Magick::Image.new(@attrs.width, @attrs.height)
-              @draw.stroke(params[0])
-              @draw.stroke_width(params[1].to_f)
-              @draw.line(params[2].to_f, params[3].to_f, params[4].to_f, params[5].to_f)
-              @draw.draw(tmp)
+              tmp = Magick::Image.new(@attrs.width, @attrs.height) { self.background_color = 'none' }
+              draw = Magick::Draw.new
+              draw.stroke(params[0])
+              draw.stroke_width(params[1].to_f)
+              draw.line(params[2].to_f, params[3].to_f, params[4].to_f, params[5].to_f)
+              draw.draw(tmp)
               @img_cache[cmd] = tmp
-
             elsif arr[1] == 'image'
               tmp = Magick::ImageList.new(@dir+params[0])
               @img_cache[cmd] = {
@@ -175,13 +179,14 @@ module Dvolatooc
 
       f = field(field)
 
-      @draw.font = @dir + f.font unless f.font.nil?
-      @draw.font_family = f.font_family unless f.font_family.nil?
-      @draw.font_weight = f.font_weight
-      @draw.font_style  = f.font_style
-      @draw.pointsize = f.font_size
-      @draw.fill = f.text_color
-      @draw.gravity = f.align
+      draw = Magick::Draw.new
+      draw.font = @dir + f.font unless f.font.nil?
+      draw.font_family = f.font_family unless f.font_family.nil?
+      draw.font_weight = f.font_weight
+      draw.font_style  = f.font_style
+      draw.pointsize = f.font_size
+      draw.fill = f.text_color
+      draw.gravity = f.align
 
       x = f.x
       y = f.y
@@ -189,39 +194,61 @@ module Dvolatooc
       y = -y if f.vertical_align == 'bottom'
       x = -x if f.text_align == 'right'
 
-      unless f.format.nil?
-        if str.is_a?(Array)
-          str = sprintf(f.format, *str)
-        else
-          str = sprintf(f.format, str)
-        end
-      end
+      str = format(f.format, str)
 
       if f.multiline
         if @cols[field].nil?
-          metrics = @draw.get_type_metrics(@image, 'n')
+          metrics = draw.get_type_metrics(@image, 'x')
           @cols[field] = (f.width / metrics.width).floor + 4
         end
         str = text_multiline(str, @cols[field])
       end
 
       if f.stretch
-        metrics = @draw.get_type_metrics(@image, str)
-        if metrics.width > f.width
-          @draw.pointsize = f.font_size*f.width / metrics.width
+        if f.multiline
+          metrics = draw.get_multiline_type_metrics(@image, str)
+          if metrics.height > f.height
+            draw.pointsize = f.font_size*f.height / metrics.height
+            metrics = draw.get_type_metrics(@image, 'x')
+            cols = (f.width / metrics.width).floor
+            str = text_multiline(str.gsub('\n', ' '), cols)
+          end
+        else
+          metrics = draw.get_type_metrics(@image, str)
+          if metrics.width > f.width
+            draw.pointsize = f.font_size*f.width / metrics.width
+          end
         end
       end
 
-      unless f.combined.nil? || !FIELDS.include?(f.combined)
-        other = @card.send(f.combined)
-        unless other.empty?
-          metrics = @draw.get_multiline_type_metrics(@image, other)
-          y += metrics.height + 20
+      unless f.combined.nil?
+        arr = f.combined.split(' ')
+        other = arr[0]
+        if FIELDS.include?(other)
+          other_str = @card.send(other)
+          unless other_str.empty?
+            fo = field(other.to_sym)
+            pos = arr[1].nil? ? 'bottom' : arr[1]
+            
+            if pos == 'bottom'
+              metrics = draw.get_multiline_type_metrics(@image, format(fo.format, other_str))
+              y += metrics.height + 20
+            elsif pos == 'right'
+              metrics = draw.get_multiline_type_metrics(@image, format(fo.format, other_str))
+              x = fo.x + metrics.width + 10
+            elsif pos == 'top'
+              metrics = draw.get_multiline_type_metrics(@image, str)
+              y = fo.y - metrics.height - 10
+            elsif pos == 'left'
+              metrics = draw.get_multiline_type_metrics(@image, str)
+              x = fo.x - metrics.width - 10
+            end
+          end
         end
       end
 
-      #              draw, width, height, x, y, text
-      @image.annotate(@draw, f.width, f.height, x, y, str)
+      #               draw, width,   height,   x, y, text
+      @image.annotate(draw, f.width, f.height, x, y, str)
     end
 
     def draw_pic(field)
@@ -273,6 +300,18 @@ module Dvolatooc
       m.push line
 
       m.join '\n'
+    end
+    
+    def format(fmt, str)
+      unless fmt.nil?
+        if str.is_a?(Array)
+          str = sprintf(fmt, *str)
+        else
+          str = sprintf(fmt, str)
+        end
+      end
+      
+      return str
     end
     
   end  # class Style

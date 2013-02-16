@@ -1,8 +1,11 @@
-﻿Raohmaru Toolkit
-================
+﻿Dvolatooc!
+==========
 
 Changelog
 ---------
+
+### v0.7.2
+* Improvements in the rendering and style definition.
 
 ### v0.7.1
 * New drawing command for style definition: image().

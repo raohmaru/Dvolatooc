@@ -76,7 +76,7 @@ module Dvolatooc
 
     def multiline; get_value('multiline') === 'true'; end
     def stretch; get_value('stretch') === 'true'; end
-    def combined; get_value('combined'); end    
+    def combined; get_value('combined'); end
     
     def border_color; get_value('border-color'); end
     def border_width; get_value('border-width', 8); end

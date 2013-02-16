@@ -7,7 +7,7 @@ module Dvolatooc
       # Lackey columns:
       # 0:Name  1:Set  2:ImageFile  3:Type  4:CornerValue  5:Text  6:FlavorText  7:Creator
       raw = raw.split "\t"  # Split by tab char
-      type = raw[3].split /\s\-\s/
+      type = raw[3].split /\s\-|\+\s/
 
       @setinfo = set
       
